@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth account socialaccount %}
+
+{% block title %}{% trans "立即加入。" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #ffffff;
+    color: #212529;
+    margin: 0; /* 移除 body 的 margin，但 flex 相關的移到 main.container */
+  }
+  main.container { /* 將 flex 居中佈局應用於 main 容器 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh; 
+      margin-top: 0 !important;
+      max-width: none;
+      padding: 0; /* 可以根據需要調整 padding，如果 auth-container 外圍需要空間 */
+  }
+  .auth-container {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  .auth-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: #212529;
+  }
+  .auth-btn { /* This class will be used for <a> tags too */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 25px;
+    margin-bottom: 1rem;
+    text-decoration: none;
+    border: 1px solid #ced4da;
+    box-sizing: border-box; /* Ensure padding and border don't expand width */
+  }
+  .auth-btn img {
+    width: 20px;
+    margin-right: 10px;
+  }
+  .btn-google, .btn-apple {
+    background-color: #ffffff;
+    color: #495057;
+    border: 1px solid #ced4da;
+  }
+  .btn-google:hover, .btn-apple:hover {
+    background-color: #f8f9fa;
+  }
+  .btn-create-account-link { /* New class for the link, styled like a button */
+    background-color: #007bff;
+    color: #ffffff !important; /* Ensure text color is white */
+    border: none;
+  }
+  .btn-create-account-link:hover {
+    background-color: #0056b3;
+    color: #ffffff !important;
+  }
+  .divider-text {
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #6c757d;
+  }
+  .login-link {
+    text-align: center;
+    margin-top: 1rem; /* Adjusted from 2rem */
+  }
+  .login-link a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  .login-link a:hover {
+    text-decoration: underline;
+  }
+  .terms-text {
+    font-size: 0.8em;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem; /* Added margin for spacing */
+  }
+  nav.navbar, footer {
+    display: none !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1 class="auth-title">{% trans "立即加入。" %}</h1>
+
+    {% provider_login_url "google" as google_login_url %}
+    <a href="{{ google_login_url }}" class="auth-btn btn-google">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo">
+        {% trans "使用 Google 帳戶註冊" %}
+    </a>
+
+    {# Placeholder for Apple login, ensure you have the provider configured in settings.py #}
+    {# {% provider_login_url "apple" as apple_login_url %} #}
+    {# <a href="{{ apple_login_url|default:"#" }}" class="auth-btn btn-apple"> #}
+    <a href="#" class="auth-btn btn-apple" style="opacity: 0.7; cursor: not-allowed;" title="Apple 登錄即將推出"> {# Temporarily disabled look #}
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo">
+        {% trans "使用 Apple 帳戶註冊" %}
+    </a>
+    
+    <div class="divider-text">{% trans "或" %}</div>
+
+    <a href="{% url 'account_signup' %}" class="auth-btn btn-create-account-link">
+        {% trans "建立帳戶" %}
+    </a>
+    
+    <p class="terms-text">
+        {% blocktrans %}如果註冊，即表示你同意服務條款和隱私政策，包括 Cookie 使用政策。{% endblocktrans %}
+    </p>
+    
+    <div class="login-link">
+        {% trans "已經有帳戶了嗎？" %} <a href="{% url 'account_login' %}">{% trans "登入" %}</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<style>
+.alert-danger ul {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+}
+</style>
+{# The JavaScript for adding 'form-control' is not needed here as there are no form inputs #}
+{% endblock %} 

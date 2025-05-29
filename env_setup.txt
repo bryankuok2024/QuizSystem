@@ -1,0 +1,22 @@
+# 創建 .env 文件的指令
+# 請在 PowerShell 中執行以下命令：
+
+# 1. 創建 .env 文件
+New-Item -Path ".env" -ItemType File
+
+# 2. 添加內容到 .env 文件
+@"
+# Gmail SMTP 配置
+EMAIL_HOST_USER=your_email@gmail.com
+EMAIL_HOST_PASSWORD=your_16_character_app_password
+DEFAULT_FROM_EMAIL=題庫系統 <your_email@gmail.com>
+USE_GMAIL_SMTP=True
+"@ | Out-File -FilePath ".env" -Encoding UTF8
+
+# 3. 替換實際值
+# 請手動編輯 .env 文件，替換：
+# - your_email@gmail.com 為您的 Gmail 地址
+# - your_16_character_app_password 為您的 Gmail 應用程式密碼
+
+# 4. 確保文件安全
+echo ".env" >> .gitignore 

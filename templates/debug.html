@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>調試頁面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 50px;
+        }
+        .debug-card {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-card">
+        <h1>🚀 Django 調試頁面</h1>
+        <p>如果您看到這個頁面，說明 Django 正在正常運行！</p>
+        <hr>
+        <p><strong>時間:</strong> {{ request.timestamp|default:"無法獲取" }}</p>
+        <p><strong>路徑:</strong> {{ request.path|default:"無法獲取" }}</p>
+        <hr>
+        <div>
+            <a href="/accounts/login/" style="color: #007bff; text-decoration: none; margin: 10px;">
+                → 測試登入頁面
+            </a>
+            <br>
+            <a href="/accounts/signup/" style="color: #007bff; text-decoration: none; margin: 10px;">
+                → 測試註冊頁面
+            </a>
+        </div>
+    </div>
+</body>
+</html> 

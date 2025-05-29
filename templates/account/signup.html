@@ -1,0 +1,38 @@
+{% extends "account/base.html" %} {# Assuming you have a base.html for account pages #}
+{% load i18n %}
+{% load static %}
+
+{% block head_title %}{% trans "Join Now" %}{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100 bg-dark">
+    <div class="card text-center shadow-lg" style="width: 25rem; background-color: #f8f9fa;">
+        <div class="card-body p-5">
+            <h1 class="card-title mb-4" style="font-weight: bold;">立即加入。</h1>
+            
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-secondary d-block mb-3">
+                <img src="{% static 'icons/google-logo.svg' %}" alt="Google" style="height: 1em; margin-right: 0.5em;"> 使用 Google 帳戶註冊
+            </a>
+            <a href="#" class="btn btn-outline-secondary d-block mb-3"> {# Placeholder for Apple Sign In #}
+                <img src="{% static 'icons/apple-logo.svg' %}" alt="Apple" style="height: 1em; margin-right: 0.5em;"> 使用 Apple 帳戶註冊
+            </a>
+            
+            <div class="my-3">
+                <small class="text-muted">或</small>
+            </div>
+            
+            <a href="{% url 'account_signup_profile' %}" class="btn btn-primary d-block btn-lg mb-3">
+                建立帳戶
+            </a>
+            
+            <p class="mt-3 mb-0">
+                <small class="text-muted">已經有帳戶了嗎？ <a href="{% url 'account_login' %}" class="link-primary">登入</a></small>
+            </p>
+        </div>
+    </div>
+</div>
+
+{# Add Font Awesome if not already in base.html for icons if needed, or use SVGs/images #}
+{# Ensure you have google-logo.svg and apple-logo.svg in your static/icons/ directory #}
+{# Or replace with Font Awesome icons like <i class="fab fa-google me-2"></i> #}
+{% endblock %} 

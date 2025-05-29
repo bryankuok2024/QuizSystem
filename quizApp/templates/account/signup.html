@@ -1,0 +1,165 @@
+{# quizApp/templates/account/signup.html #}
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth account %} 
+
+{% block title %}{% trans "建立你的帳戶" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background-color: #ffffff; color: #212529; margin: 0; }
+  main.container { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin-top: 0 !important; max-width: none; padding: 0; }
+  .auth-form-container { max-width: 480px; width: 100%; padding: 2rem; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); }
+  .auth-form-title { font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; text-align: center; color: #212529; }
+  .form-group { margin-bottom: 1rem; text-align: center; }
+  .form-group label { display: block; margin-bottom: .5rem; font-weight: 500; }
+  .form-control { display: block; width: 100%; padding: .375rem .75rem; font-size: 1rem; line-height: 1.5; color: #495057; background-color: #fff; background-clip: padding-box; border: 1px solid #ced4da; border-radius: .25rem; transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out; box-sizing: border-box; }
+  .form-control:focus { color: #495057; background-color: #fff; border-color: #80bdff; outline: 0; box-shadow: 0 0 0 .2rem rgba(0,123,255,.25); }
+  .auth-submit-btn { width: 100%; padding: 0.75rem; font-size: 1.1rem; color: #fff; background-color: #007bff; border-color: #007bff; border-radius: 25px; cursor: pointer; }
+  .auth-submit-btn:hover { background-color: #0056b3; border-color: #0056b3; }
+  .help-text { font-size: 0.875em; color: #6c757d; margin-top: .25rem; }
+  .field-errors { color: #dc3545; font-size: 0.875em; margin-top: .25rem; list-style: none; padding-left: 0; }
+  .alert ul { list-style: none; padding-left: 0; margin-bottom: 0; }
+  .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; padding: .75rem 1.25rem; margin-bottom: 1rem; border: 1px solid transparent; border-radius: .25rem; }
+  
+  /* Style for UL within help-text to center the block but left-align its items */
+  .help-text ul {
+    display: inline-block; /* Allows the UL block to be centered by parent's text-align:center */
+    text-align: left;    /* Ensures list items (li) within the UL are left-aligned */
+    padding-left: 20px;  /* Adjust for desired bullet indentation, default could be 40px */
+    list-style-position: outside; /* Ensures bullets are to the left of the text */
+    margin-top: 0; /* Avoids double margin if <small class="help-text"> already has margin-top */
+    margin-bottom: 0;
+  }
+
+  nav.navbar, footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-form-container">
+    <h1 class="auth-form-title">{% trans "建立你的帳戶" %}</h1>
+    <form method="post" action="{% url 'account_signup' %}" class="signup">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {# Manually render fields in desired order #}
+        
+        {# 1. 姓名 (first_name) #}
+        {% if form.first_name %}
+        <div class="form-group">
+            <label for="{{ form.first_name.id_for_label }}">{% trans "姓名" %}</label>
+            {{ form.first_name }}
+            {% if form.first_name.help_text %}
+                <small class="help-text">{{ form.first_name.help_text }}</small>
+            {% endif %}
+            {% if form.first_name.errors %}
+                <ul class="field-errors">
+                {% for error in form.first_name.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# 2. 電子信箱 (email) #}
+        {% if form.email %}
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">{% trans "電子信箱" %}</label>
+            {{ form.email }}
+            {% if form.email.help_text %}
+                <small class="help-text">{{ form.email.help_text }}</small>
+            {% endif %}
+            {% if form.email.errors %}
+                <ul class="field-errors">
+                {% for error in form.email.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# 3. 密碼 (password1) #}
+        {% if form.password1 %}
+        <div class="form-group">
+            <label for="{{ form.password1.id_for_label }}">{% trans "密碼" %}</label>
+            {{ form.password1 }}
+            {% if form.password1.help_text %}
+                <small class="help-text">{{ form.password1.help_text|safe }}</small> {# Use safe for allauth's password help text #}
+            {% endif %}
+            {% if form.password1.errors %}
+                <ul class="field-errors">
+                {% for error in form.password1.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# 4. 密碼 (再一次) (password2) #}
+        {% if form.password2 %}
+        <div class="form-group">
+            <label for="{{ form.password2.id_for_label }}">{% trans "密碼 (再一次)" %}</label>
+            {{ form.password2 }}
+            {% if form.password2.help_text %}
+                <small class="help-text">{{ form.password2.help_text }}</small>
+            {% endif %}
+            {% if form.password2.errors %}
+                <ul class="field-errors">
+                {% for error in form.password2.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {# Render any other hidden fields, etc. that might have been missed #}
+        {% for field in form %}
+            {% if field.is_hidden %}
+                {{ field }}
+            {% endif %}
+        {% endfor %}
+
+        {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+        
+        <button type="submit" class="auth-submit-btn">{% trans "同意並註冊" %}</button>
+    </form>
+    <p style="text-align:center; margin-top:1rem;">
+        <a href="{% url 'signup_options' %}">{% trans "返回其他註冊選項" %}</a>
+    </p>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+// Add 'form-control' class to all relevant input fields for styling
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form.signup');
+    if (form) {
+        // Apply to specific input types within .form-group for better targeting if needed
+        form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]').forEach(function(field) {
+            if (!field.classList.contains('form-control')) {
+                field.classList.add('form-control');
+            }
+        });
+        // If you have select or textarea fields managed by this form:
+        // form.querySelectorAll('select, textarea').forEach(function(field) {
+        //     if (!field.classList.contains('form-control')) {
+        //         field.classList.add('form-control');
+        //     }
+        // });
+    }
+});
+</script>
+{% endblock %} 

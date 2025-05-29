@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}題庫系統{% endblock %}</title>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <main>
+        {% block content %}
+        <p>這是 base.html 中的默認內容。</p>
+        {% endblock %}
+    </main>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

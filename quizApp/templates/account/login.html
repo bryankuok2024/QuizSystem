@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth account socialaccount %}
+
+{% block title %}{% trans "登入" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #ffffff;
+    color: #212529;
+    margin: 0; /* 移除 body 的 margin，但 flex 相關的移到 main.container */
+  }
+  main.container { /* 將 flex 居中佈局應用於 main 容器 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh; 
+      margin-top: 0 !important;
+      max-width: none;
+      padding: 0; /* 可以根據需要調整 padding，如果 auth-container 外圍需要空間 */
+  }
+  .auth-container {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  .auth-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: #212529;
+  }
+  .auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 25px;
+    margin-bottom: 1rem;
+    text-decoration: none;
+    border: 1px solid #ced4da;
+  }
+  .auth-btn img {
+    width: 20px;
+    margin-right: 10px;
+  }
+  .btn-google, .btn-apple {
+    background-color: #ffffff;
+    color: #495057;
+    border: 1px solid #ced4da;
+  }
+  .btn-google:hover, .btn-apple:hover {
+    background-color: #f8f9fa;
+  }
+  .btn-login {
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+  }
+  .btn-login:hover {
+    background-color: #0056b3;
+  }
+  .divider-text {
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #6c757d;
+  }
+  .signup-link, .password-reset-link {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  .signup-link a, .password-reset-link a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  .signup-link a:hover, .password-reset-link a:hover {
+    text-decoration: underline;
+  }
+  .form-control {
+      background-color: #ffffff;
+      color: #212529;
+      border: 1px solid #ced4da;
+  }
+  .form-control::placeholder {
+      color: #6c757d;
+  }
+  .form-label {
+      margin-bottom: 0.5rem;
+      color: #212529;
+  }
+  .form-check-label {
+    color: #212529;
+  }
+  nav.navbar, footer {
+    display: none !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1 class="auth-title">{% trans "登入" %}</h1>
+
+    {% get_providers as socialaccount_providers %}
+    {% if socialaccount_providers %}
+      {% provider_login_url "google" as google_url %}
+      <a href="{{ google_url }}" class="auth-btn btn-google">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo">
+          {% trans "使用 Google 帳戶登入" %}
+      </a>
+
+      {# Apple 登錄按鈕 - 假設您將來會配置 #}
+      {% if False %} {# 暫時禁用 Apple，直到您配置它 #}
+      {% provider_login_url "apple" as apple_url %} {# 假設 apple 是提供商 ID #}
+      <a href="{{ apple_url }}" class="auth-btn btn-apple">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo">
+          {% trans "使用 Apple 帳戶登入" %}
+      </a>
+      {% else %}
+      <a href="#" class="auth-btn btn-apple"> 
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo">
+          {% trans "使用 Apple 帳戶登入" %}
+      </a>
+      {% endif %}
+    
+      <div class="divider-text">{% trans "或使用您的電子郵件" %}</div>
+    {% endif %}
+
+    <form class="login" method="POST" action="{% url 'account_login' %}">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}
+                    {{ error }}<br>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label for="{{ form.login.id_for_label }}" class="form-label">{% trans "電子郵件" %}</label>
+            {{ form.login }}
+            {% if form.login.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.login.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.password.id_for_label }}" class="form-label">{% trans "密碼" %}</label>
+            {{ form.password }}
+             {% if form.password.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.password.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+        
+        <div class="mb-3 form-check">
+            {{ form.remember.label_tag }}
+            {{ form.remember }}
+        </div>
+        
+        <button class="auth-btn btn-login" type="submit">{% trans "登入" %}</button>
+    </form>
+
+    <div class="password-reset-link">
+        <a href="{% url 'account_reset_password' %}">{% trans "忘記密碼？" %}</a>
+    </div>
+    <div class="signup-link mt-2">
+        {% trans "還沒有帳戶嗎？" %} <a href="{% url 'account_signup' %}">{% trans "立即加入" %}</a>
+    </div>
+</div>
+{% endblock %}

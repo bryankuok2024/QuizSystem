@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}驗證郵件已發送 - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verification-card {
+        max-width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 0.5rem;
+    }
+    
+    .email-icon {
+        font-size: 4rem;
+        color: #198754;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .email-highlight {
+        background-color: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #198754;
+        font-family: monospace;
+        word-break: break-all;
+    }
+    
+    .step-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="verification-card">
+            <div class="card-header bg-success text-white text-center py-4">
+                <div class="email-icon mb-3">
+                    <i class="fas fa-envelope-circle-check"></i>
+                </div>
+                <h2 class="mb-0">驗證郵件已發送！</h2>
+                <p class="mb-0 mt-2 opacity-75">請檢查您的電子信箱</p>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>成功！</strong>我們已經發送驗證郵件到您的信箱。
+                </div>
+                
+                <div class="email-highlight mb-4">
+                    <i class="fas fa-envelope me-2"></i>{{ user.email|default:"您的電子信箱" }}
+                </div>
+                
+                <h5 class="mb-3"><i class="fas fa-list-check me-2"></i>接下來該怎麼做：</h5>
+                
+                <div class="d-flex align-items-start mb-3">
+                    <div class="step-number me-3">1</div>
+                    <div>
+                        <strong>檢查您的收件箱</strong><br>
+                        <small class="text-muted">查看是否收到來自題庫系統的驗證郵件</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-start mb-3">
+                    <div class="step-number me-3">2</div>
+                    <div>
+                        <strong>檢查垃圾郵件資料夾</strong><br>
+                        <small class="text-muted">如果收件箱中沒有，請檢查垃圾郵件或促銷資料夾</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-start mb-4">
+                    <div class="step-number me-3">3</div>
+                    <div>
+                        <strong>點擊驗證連結</strong><br>
+                        <small class="text-muted">點擊郵件中的驗證連結來啟用您的帳戶</small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>注意：</strong>驗證連結將在 3 天後過期。
+                </div>
+                
+                <div class="row">
+                    <div class="col-6">
+                        <a href="{% url 'home' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-home me-2"></i>返回首頁
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'account_login' %}" class="btn btn-primary w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>前往登入
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer text-center py-3 bg-light">
+                <small class="text-muted">
+                    <i class="fas fa-question-circle me-1"></i>
+                    沒有收到郵件？請聯繫客服或重新註冊
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load allauth account %}
+
+{% block title %}{% trans "驗證你的帳戶" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background-color: #f8f9fa; /* Light gray background */ color: #212529; margin: 0; }
+  main.container { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin-top: 0 !important; max-width: none; padding: 0; }
+  .auth-form-container {
+    max-width: 480px; 
+    width: 100%; 
+    padding: 2.5rem;
+    background-color: #ffffff; 
+    border-radius: 8px; 
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1);
+    border: 1px solid #dee2e6;
+  }
+  .auth-form-title {
+    font-size: 1.75rem; /* Slightly smaller title */
+    font-weight: bold; 
+    margin-bottom: 0.5rem; 
+    text-align: center; 
+    color: #343a40;
+  }
+  .auth-form-subtitle {
+    font-size: 1rem;
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  .form-group { margin-bottom: 1.25rem; text-align: center; }
+  .form-group label { display: block; margin-bottom: .5rem; font-weight: 500; color: #495057; }
+  .form-control {
+    display: block; 
+    width: 100%; 
+    padding: .5rem .9rem; /* Slightly larger padding */
+    font-size: 1rem; 
+    line-height: 1.5; 
+    color: #495057; 
+    background-color: #fff; 
+    background-clip: padding-box; 
+    border: 1px solid #ced4da; 
+    border-radius: .25rem; 
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out; 
+    box-sizing: border-box; 
+  }
+  .form-control:focus { 
+    color: #495057; 
+    background-color: #fff; 
+    border-color: #80bdff; 
+    outline: 0; 
+    box-shadow: 0 0 0 .2rem rgba(0,123,255,.25); 
+  }
+  .auth-submit-btn {
+    width: 100%; 
+    padding: 0.6rem 1rem; /* Adjusted padding */
+    font-size: 1.05rem; /* Adjusted font size */
+    color: #fff; 
+    background-color: #007bff; 
+    border-color: #007bff; 
+    border-radius: 25px; /* Pill shape */
+    cursor: pointer; 
+    transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+  }
+  .auth-submit-btn:hover { background-color: #0056b3; border-color: #0056b3; }
+  .help-text { font-size: 0.875em; color: #6c757d; margin-top: .25rem; }
+  .field-errors { color: #dc3545; font-size: 0.875em; margin-top: .25rem; list-style: none; padding-left: 0; }
+  .alert ul { list-style: none; padding-left: 0; margin-bottom: 0; }
+  .alert-danger { 
+    color: #721c24; 
+    background-color: #f8d7da; 
+    border-color: #f5c6cb; 
+    padding: .75rem 1.25rem; 
+    margin-bottom: 1rem; 
+    border: 1px solid transparent; 
+    border-radius: .25rem; 
+  }
+  .resend-link-container {
+      text-align: center;
+      margin-top: 1.5rem;
+  }
+  .resend-link-container a {
+      color: #007bff;
+      text-decoration: none;
+  }
+  .resend-link-container a:hover {
+      text-decoration: underline;
+  }
+  nav.navbar, footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-form-container">
+    <h1 class="auth-form-title">{% trans "輸入驗證碼" %}</h1>
+    <p class="auth-form-subtitle">
+        {% blocktrans trimmed with email=display_email|default:_("您的電子郵件地址") %}
+        我們已發送一個 6 位數的驗證碼到 <strong>{{ email }}</strong>。
+        請在下方輸入以完成註冊。
+        {% endblocktrans %}
+    </p>
+
+    <form method="post" action="{% url 'users:account_verify_signup_code' %}" class="verify-code-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="help-text">{{ field.help_text }}</small>
+                {% endif %}
+                {% if field.errors %}
+                    <ul class="field-errors">
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <button type="submit" class="auth-submit-btn">{% trans "下一步" %}</button>
+    </form>
+
+    {# Placeholder for resend code functionality - to be implemented later if needed #}
+    {% comment %}
+    <div class="resend-link-container">
+        <a href="{% url 'users:account_resend_verification_code' %}">{% trans "沒有收到驗證碼？重新傳送" %}</a>
+    </div>
+    {% endcomment %}
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form.verify-code-form');
+    if (form) {
+        form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"]').forEach(function(field) {
+            if (!field.classList.contains('form-control')) {
+                field.classList.add('form-control');
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

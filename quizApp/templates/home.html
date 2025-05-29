@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}首頁 - 題庫系統{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 歡迎區域 -->
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+            <h1 class="display-4">歡迎來到題庫系統</h1>
+            {% if user.is_authenticated %}
+                <p class="lead">你好，{{ user.email }}！歡迎回來！</p>
+                <p>準備好開始新的學習挑戰了嗎？</p>
+                <a class="btn btn-light btn-lg" href="#" role="button">開始答題</a>
+            {% else %}
+                <p class="lead">一個專為學習設計的線上題庫平台</p>
+                <p>立即註冊，開始你的學習旅程！</p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a class="btn btn-light btn-lg me-2" href="{% url 'signup_options' %}" role="button">立即註冊</a>
+                    <a class="btn btn-outline-secondary btn-lg" href="{% url 'account_login' %}" role="button">會員登入</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 功能介紹 -->
+        {% if not user.is_authenticated %}
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-question-circle fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">豐富題庫</h5>
+                        <p class="card-text">涵蓋多個領域的精選題目，滿足不同學習需求。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">學習追蹤</h5>
+                        <p class="card-text">詳細的學習進度分析，幫助你掌握學習狀況。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-trophy fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title">成就系統</h5>
+                        <p class="card-text">完成挑戰獲得成就，讓學習更有成就感。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        {% if user.is_authenticated %}
+            <!-- 已登入用戶的側邊欄 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">學習統計</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">總答題數：<span class="badge bg-primary">0</span></p>
+                    <p class="card-text">正確率：<span class="badge bg-success">0%</span></p>
+                    <p class="card-text">連續學習天數：<span class="badge bg-warning">0</span></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">快速動作</h5>
+                </div>
+                <div class="card-body">
+                    <a href="#" class="btn btn-primary w-100 mb-2">開始隨機測驗</a>
+                    <a href="#" class="btn btn-outline-primary w-100 mb-2">查看錯題本</a>
+                    <a href="#" class="btn btn-outline-secondary w-100">學習進度</a>
+                </div>
+            </div>
+        {% else %}
+            <!-- 未登入用戶的側邊欄 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">開始使用</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">註冊帳戶即可享受：</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> 無限制練習</li>
+                        <li><i class="fas fa-check text-success"></i> 個人進度追蹤</li>
+                        <li><i class="fas fa-check text-success"></i> 錯題複習功能</li>
+                        <li><i class="fas fa-check text-success"></i> 成績分析報告</li>
+                    </ul>
+                    <div class="d-grid">
+                        <a href="{% url 'signup_options' %}" class="btn btn-success w-100">免費註冊</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+.jumbotron {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+</style>
+{% endblock %} 

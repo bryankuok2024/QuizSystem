@@ -1,0 +1,76 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}{% trans "Signup Step 1" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-dark text-white">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">建立你的帳戶</h1>
+                    <form method="post" action="{% url 'account_signup_profile' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <h5 class="mt-4 mb-3">出生日期</h5>
+                        <p class="text-muted small mb-3">此資訊將不會公開顯示。請確認你自己的年齡，即使此帳戶是用於公司、寵物或其他用途。</p>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="{{ form.dob_month.id_for_label }}" class="form-label">{{ form.dob_month.label }}</label>
+                                {{ form.dob_month }}
+                            </div>
+                            <div class="col">
+                                <label for="{{ form.dob_day.id_for_label }}" class="form-label">{{ form.dob_day.label }}</label>
+                                {{ form.dob_day }}
+                            </div>
+                            <div class="col">
+                                <label for="{{ form.dob_year.id_for_label }}" class="form-label">{{ form.dob_year.label }}</label>
+                                {{ form.dob_year }}
+                            </div>
+                        </div>
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.dob_year.errors or form.dob_month.errors or form.dob_day.errors %}
+                            <div class="invalid-feedback d-block mb-2">
+                                無效的出生日期。
+                            </div>
+                        {% endif %}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-light btn-lg">下一步</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
