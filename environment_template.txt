@@ -1,0 +1,50 @@
+# Django Core Settings
+SECRET_KEY='your_strong_secret_key_here_please_generate_a_new_one'
+DEBUG=True
+ALLOWED_HOSTS='127.0.0.1,localhost,your_production_domain.com'
+
+# Database Settings (MySQL)
+DATABASE_NAME='quiz_db'
+DATABASE_USER='root'
+DATABASE_PASSWORD='your_mysql_password_here' # 請替換為您的實際密碼
+DATABASE_HOST='localhost'
+DATABASE_PORT='3306'
+
+# Redis Settings (for Celery and Caching/Sessions)
+# 如果您的 Redis 服務器有密碼保護，請取消註釋並設置以下變量
+# REDIS_PASSWORD='your_redis_password'
+
+# Celery Settings (if REDIS_PASSWORD is not set, these are used directly)
+# 如果 REDIS_PASSWORD 已設置，settings.py 會自動構建包含密碼的 URL
+CELERY_BROKER_URL='redis://localhost:6379/0'
+CELERY_RESULT_BACKEND='redis://localhost:6379/0'
+
+# Email Settings
+# 設置 USE_GMAIL_SMTP=True 以使用下面的 Gmail/SMTP 詳細信息
+# 否則，將使用 Django 的控制台郵件後端 (將郵件打印到終端)
+USE_GMAIL_SMTP=False
+
+# 如果 USE_GMAIL_SMTP=True，請填寫以下 Gmail (或其他郵件服務商) 的詳細信息
+# 對於 Gmail，強烈建議使用 "應用密碼 (App Password)"
+EMAIL_HOST_USER='your_email@example.com'
+EMAIL_HOST_PASSWORD='your_email_app_password_or_smtp_password'
+DEFAULT_FROM_EMAIL='QuizSystem <your_email@example.com>' # 發件人顯示名稱和郵箱
+
+# 如果 USE_GMAIL_SMTP=True 但不是 Gmail (例如自定義 SMTP 服務器):
+# EMAIL_HOST='smtp.your_provider.com'
+# EMAIL_PORT=587 # 或 465
+# EMAIL_USE_TLS=True # 通常為 True (對於 port 587)
+# EMAIL_USE_SSL=False # 通常為 False (對於 port 465 則為 True)
+
+# Django-allauth Settings
+ACCOUNT_EMAIL_VERIFICATION='none' # 可選值: 'none', 'optional', 'mandatory'
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION=False # True 或 False - 確認郵箱後是否自動登錄
+ACCOUNT_DEFAULT_HTTP_PROTOCOL='http' # 開發環境用 'http', 生產環境用 'https' (當生成郵件確認鏈接等時使用)
+
+# Google OAuth2 Credentials
+# 從 Google Cloud Console (APIs & Services > Credentials) 獲取
+GOOGLE_CLIENT_ID='your_google_client_id_here'
+GOOGLE_CLIENT_SECRET='your_google_client_secret_here'
+
+# Session Settings
+SESSION_COOKIE_SECURE=False # 開發環境用 False, 生產環境 (HTTPS) 用 True 

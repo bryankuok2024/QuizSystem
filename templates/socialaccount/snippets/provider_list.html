@@ -1,0 +1,23 @@
+{% load socialaccount %}
+{% load static %}
+
+{% get_providers as socialaccount_providers %}
+
+{% for provider in socialaccount_providers %}
+  {% if provider.id == "google" %}
+    <a title="{{provider.name}}" class="btn btn-light socialaccount_provider google w-100 my-2 shadow-sm" 
+       href="{% provider_login_url provider.id process=process %}"
+       style="display: flex; align-items: center; justify-content: center; border-radius: 25px; padding: 10px 0;">
+      <img src="{% static 'icons/google-logo.svg' %}" alt="{{provider.name}} Logo" style="height: 20px; width: 20px; margin-right: 10px;">
+      {% if process == "signup" %}
+        使用 {{provider.name}} 帳戶註冊
+      {% else %}
+        使用 {{provider.name}} 帳戶登入
+      {% endif %}
+    </a>
+  {% endif %}
+  {# Add other providers here if needed in the future, e.g., Apple #}
+  {# {% if provider.id == "apple" %} ... {% endif %} #}
+{% empty %}
+  <p>沒有可用的社交帳戶提供者。</p> 
+{% endfor %} 

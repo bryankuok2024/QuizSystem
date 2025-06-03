@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{# 
+  This base template is for allauth's account pages.
+  It extends your project's main base.html.
+  You can override blocks defined in your main base.html here if needed,
+  or define new blocks for account-specific content.
+#}
+
+{% block title %}
+    {% block head_title %}{% endblock %} - {% trans "Account" %} - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 col-lg-6 offset-lg-3">
+            {% block account_content %}
+                {# Specific account page content will go here #}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{# The main content block will be filled by individual account templates like login.html, signup.html, etc. #}
+{# We don't need to redefine the content block here unless we want to wrap it or add account-specific sidebars/elements outside the main content. #} 

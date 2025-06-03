@@ -1,0 +1,26 @@
+{% load i18n %}
+{% load static %}
+{% load socialaccount %}
+
+{% for provider in socialaccount_providers %}
+  {# Temporarily removed conditional display to debug - Start #}
+  {# {% if provider.id == "google" or provider.id == "apple" %} #}
+    <li class="socialaccount_provider {{ provider.id }} list-group-item p-0 my-1 border-0"> {# Added some bootstrap list classes for potential default styling #}
+      <a title="{{ provider.name }}" class="social-btn {{ provider.id }}-btn btn btn-outline-dark d-block w-100" href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}">
+        {% if provider.id == "google" %}
+          <img src="{% static 'icons/google-logo.svg' %}" alt="Google Logo" style="height: 1.2em; margin-right: 8px; vertical-align: middle;">
+          <span style="vertical-align: middle;">{% blocktrans with provider.name as name %}使用 {{ name }} 帳戶 ({{ process }}){% endblocktrans %}</span>
+        {% elif provider.id == "apple" %}
+          <img src="{% static 'icons/apple-logo.svg' %}" alt="Apple Logo" style="height: 1.2em; margin-right: 8px; vertical-align: middle;">
+          <span style="vertical-align: middle;">{% blocktrans with provider.name as name %}使用 {{ name }} 帳戶 ({{ process }}){% endblocktrans %}</span>
+        {% else %}
+          {# Fallback for any other provider that might be active #}
+          <span style="vertical-align: middle;">{% blocktrans with provider.name as name %}使用 {{ name }} ({{ process }}){% endblocktrans %}</span>
+        {% endif %}
+      </a>
+    </li>
+  {# {% endif %} #}
+  {# Temporarily removed conditional display to debug - End #}
+{% empty %}
+  <li><p class="text-muted text-center">{% trans "No social login providers configured or available." %}</p></li>
+{% endfor %} 

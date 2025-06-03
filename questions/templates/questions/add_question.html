@@ -1,0 +1,101 @@
+{% extends 'base.html' %}  {# 假设您有一个基础模板 base.html #}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "添加新题目" %}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    .form-field-container {
+        margin-bottom: 1rem;
+    }
+    .asteriskField {
+        display: none; /* 隐藏 Django 表单默认的星号 */
+    }
+    label.form-label {
+        font-weight: bold;
+    }
+    .form-text {
+        font-size: 0.875em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <h2 class="mb-4 text-center">{% trans "添加新题目到题库" %}</h2>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div class="form-field-container {% if field.field.widget.input_type == 'checkbox' %}form-check{% else %}mb-3{% endif %}">
+                        {% if field.field.widget.input_type == 'checkbox' %}
+                            {{ field }} 
+                            <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {% else %}
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {{ field }} 
+                        {% endif %}
+                        
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                        {% endif %}
+                        
+                        {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in field.errors %}
+                                    <span>{{ error }}</span><br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <div class="mt-4 d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">{% trans "提交题目" %}</button>
+                </div>
+            </form>
+            <p class="text-center mt-3">
+                <a href="{% url 'admin:questions_question_changelist' %}">{% trans "返回题目列表 (Admin)" %}</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{# Bootstrap 5 客户端表单验证 (可选) #}
+<script>
+(function () {
+  'use strict'
+  var forms = document.querySelectorAll('.needs-validation')
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+</script>
+{% endblock %} 

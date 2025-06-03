@@ -4,14 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}題庫系統{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome CSS (if you still want to use it for other icons, keep it) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f8f9fa; /* 淺灰色背景，與截圖一致 */
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .site-footer {
+            background-color: #e9ecef; /* 頁腳背景色 */
+            padding: 20px 0;
+            text-align: center;
+            margin-top: auto; /* 將頁腳推到底部 */
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        /* 主內容容器 */
+        .main-container {
+            padding-top: 20px; /* 導航欄下方的一些間距 */
+            padding-bottom: 20px;
+            flex: 1;
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <main>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">題庫系統</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">首頁</a>
+                    </li>
+                    <!-- 您可以在這裡添加其他導航連結 -->
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'account_logout' %}">登出 ({{ user.email }})</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'account_login' %}">登入</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'account_signup' %}">註冊</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container container">
         {% block content %}
         <p>這是 base.html 中的默認內容。</p>
         {% endblock %}
-    </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p class="mb-0">&copy; {% now "Y" %} 題庫系統. 版權所有.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html> 
