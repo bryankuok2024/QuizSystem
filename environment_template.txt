@@ -46,5 +46,8 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL='http' # 開發環境用 'http', 生產環境用 '
 GOOGLE_CLIENT_ID='your_google_client_id_here'
 GOOGLE_CLIENT_SECRET='your_google_client_secret_here'
 
+# Django-allauth specific behavior
+SOCIALACCOUNT_AUTO_SIGNUP=True # True 或 False - 是否在社交登錄後自動創建用戶 (如果用戶不存在)
+
 # Session Settings
 SESSION_COOKIE_SECURE=False # 開發環境用 False, 生產環境 (HTTPS) 用 True 

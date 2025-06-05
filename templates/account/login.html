@@ -102,6 +102,11 @@
         <i class="fas fa-sign-in-alt me-2"></i>{% trans "Sign In" %}
     </h1>
 
+    {# Removed debug print statements for SOCIALACCOUNT_ENABLED and socialaccount_providers #}
+    {# Removed debug loop for socialaccount_providers #}
+    {# Removed debug message for "No socialaccount_providers found" #}
+
+    {# The original include method for social login buttons #}
     {% if SOCIALACCOUNT_ENABLED %}
         {% providers_media_js %}
         <div class="socialaccount_ballot mb-3">

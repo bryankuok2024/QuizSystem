@@ -11,8 +11,8 @@
 - **學習進度** - (待詳細設計)
 
 ### 🔧 技術特性
-- **Django 5.2+** - 現代 Python Web 框架
-- **django-allauth** - 強大的用戶認證管理
+- **Django 5.2.1** - 現代 Python Web 框架
+- **django-allauth 0.62.0** - 強大的用戶認證管理
 - **MySQL** - 可靠的關聯式數據庫 (通過 `.env` 配置)
 - **Redis** - 用於 Celery 消息代理、結果後端和 Django 緩存/會話 (通過 `.env` 配置密碼)
 - **Celery** - 異步任務處理 (通過 `.env` 配置 Broker/Backend URL)
@@ -97,7 +97,27 @@ QUIZSYSTEM/
         *   `DATABASE_PORT`
         *   `GOOGLE_CLIENT_ID` (如果需要 Google 登入)
         *   `GOOGLE_CLIENT_SECRET` (如果需要 Google 登入)
+        *   `SITE_ID=1` (Django Sites 框架配置，`django-allauth` 需要，通常在 `settings.py` 中設置)
         *   根據需要配置郵件服務 (`USE_GMAIL_SMTP`, `EMAIL_HOST_USER`, 等) 和 Redis 密碼 (`REDIS_PASSWORD`)。
+
+    *   **關於 `django-allauth` (版本 0.62.0+) 的重要說明**:
+        *   您 **不應** 在 `settings.py` 的 `TEMPLATES` 配置中手動添加 `allauth.account.context_processors.account` 或 `allauth.socialaccount.context_processors.socialaccount`。這些在舊版本中可能需要，但在 `0.61.0` 及更高版本中已不再需要，添加它们會導致 `ModuleNotFoundError`。
+        *   確保 `allauth` (`'allauth'`)，`allauth.account` (`'allauth.account'`) 和 `allauth.socialaccount` (`'allauth.socialaccount'`) 包含在 `settings.py` 的 `INSTALLED_APPS` 中。
+
+    *   **Google OAuth 登入詳細配置**:
+        1.  **`settings.py`**: 確保 `SITE_ID = 1`。
+        2.  **Google Cloud Console**:
+            *   創建或選擇一個 OAuth 2.0 客戶端 ID。
+            *   在 "已授權的重新導向 URI" (Authorized redirect URIs) 中，添加 `http://127.0.0.1:8000/accounts/google/login/callback/` (開發環境) 或對應的生產環境 URL。
+        3.  **Django Admin**:
+            *   訪問 `/admin/socialaccount/socialapp/`。
+            *   點擊 "新增 social application"。
+            *   提供者 (Provider): 選擇 "Google"。
+            *   名稱 (Name): 例如 "Google API"。
+            *   客戶端 ID (Client ID): 填入您從 Google Cloud Console 獲取的 `GOOGLE_CLIENT_ID`。
+            *   密鑰 (Secret key): 填入您從 Google Cloud Console 獲取的 `GOOGLE_CLIENT_SECRET`。
+            *   站點 (Sites): 從左側選擇框中選擇與 `SITE_ID = 1` 對應的站點 (例如 `127.0.0.1:8000`)，然後點擊箭頭將其移動到右側的 "Chosen sites" 框中。
+            *   保存。
 
 5.  **數據庫設置**
     *   確保你的 MySQL 服務正在運行。

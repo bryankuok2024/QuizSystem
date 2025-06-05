@@ -2,8 +2,8 @@
 
 ## 項目概述
 - **項目名稱**: QUIZSYSTEM (題庫系統)
-- **Django 版本**: 5.2.1 (請確認，或保持最新)
-- **django-allauth 版本**: 65.8.1
+- **Django 版本**: 5.2.1
+- **django-allauth 版本**: 0.62.0
 - **數據庫**: MySQL (默認為 quiz_db，可通過 .env 配置)
 - **語言**: 繁體中文 (zh-hant)
 - **時區**: Asia/Hong_Kong
@@ -258,3 +258,20 @@ urlpatterns = [
 
 ## 總結
 Django-allauth 已成功配置並與重構後的項目結構集成。系統支持 Email 註冊、登入，以及 Google 社交登入。郵件驗證、密碼重置等核心認證流程已具備。開發者應確保 `.env` 文件配置正確，並遵循生產環境準備清單以進行部署。 
+
+# TEMPLATES - 上下文處理器重要說明 (針對 allauth 0.61.0+)
+# 不應在 TEMPLATES 的 context_processors 中手動添加 'allauth.account.context_processors.account' 
+# 或 'allauth.socialaccount.context_processors.socialaccount'，這些已不再需要，且會導致 ModuleNotFoundError。
+# Django 的 'django.template.context_processors.request' 是 allauth 所需的。
+
+# Google OAuth 登入詳細配置要點 (更多細節請參考 README.md):
+# 1. settings.py: SITE_ID = 1
+# 2. Google Cloud Console: 配置 OAuth Client ID 和 Secret, 並設置正確的重定向 URI (例如 http://127.0.0.1:8000/accounts/google/login/callback/)
+# 3. Django Admin (/admin/socialaccount/socialapp/): 創建 Social Application, 選擇 "Google" Provider, 填入 Client ID 和 Secret, 並關聯到正確的 Site.
+
+# Other settings like rate limits, password length etc.
+ACCOUNT_PASSWORD_MIN_LENGTH = 8
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '5/5m',
+    'confirm_email': '1/3m',
+} 

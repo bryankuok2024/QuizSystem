@@ -7,6 +7,9 @@ from django.contrib.auth.hashers import make_password
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages # For displaying messages
 from django.conf import settings
+from django.apps import apps
+from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.providers import registry # 新的导入
 
 # Attempt to import your custom user model. 
 # If you haven't defined one, Django's default User model will be used.
@@ -119,4 +122,6 @@ def verify_signup_code_view(request):
     return render(request, 'account/verify_signup_code.html', {
         'form': form,
         'display_email': display_email
-    }) 
+    })
+
+# The social_test_view function will be removed from here. 
