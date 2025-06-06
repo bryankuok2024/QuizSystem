@@ -1,0 +1,17 @@
+INFO 2025-06-06 22:55:02,960 autoreload 35704 41944 Watching for file changes with StatReloader
+INFO 2025-06-06 22:55:05,292 basehttp 35704 46964 "GET / HTTP/1.1" 200 6411
+INFO 2025-06-06 22:55:06,333 basehttp 35704 46964 "GET / HTTP/1.1" 200 6411
+INFO 2025-06-06 22:55:08,400 basehttp 35704 46964 "GET /accounts/logout/ HTTP/1.1" 302 0
+INFO 2025-06-06 22:55:08,404 basehttp 35704 46964 "GET / HTTP/1.1" 200 8115
+INFO 2025-06-06 22:55:11,709 basehttp 35704 46964 "GET /accounts/login/ HTTP/1.1" 200 7485
+INFO 2025-06-06 22:55:11,731 basehttp 35704 46964 "GET /static/icons/google-logo.svg HTTP/1.1" 304 0
+INFO 2025-06-06 22:55:12,980 basehttp 35704 46964 "GET /accounts/google/login/?process=login HTTP/1.1" 302 0
+INFO 2025-06-06 22:55:18,051 basehttp 35704 46964 "GET /accounts/google/login/callback/?state=Rm7PapYPjcIJ4X3y&code=4%2F0AUJR-x7NRNWptf0rWX0XRicpZn0JPBvd-cCZ5dV5yOViCELux-GDl9C_R7nFlCTNaBF26A&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&authuser=2&hd=legolego.co&prompt=none HTTP/1.1" 302 0
+INFO 2025-06-06 22:55:18,059 basehttp 35704 46964 "GET / HTTP/1.1" 200 6411
+INFO 2025-06-06 22:55:23,834 basehttp 35704 46964 "GET / HTTP/1.1" 200 6411
+INFO 2025-06-06 22:55:25,126 basehttp 35704 46964 "GET / HTTP/1.1" 200 6411
+INFO 2025-06-06 22:55:48,640 basehttp 35704 46964 "GET /questions/practice/ HTTP/1.1" 200 5091
+INFO 2025-06-06 22:55:51,074 basehttp 35704 46964 "GET /questions/practice/?subject_id=2 HTTP/1.1" 200 14680
+INFO 2025-06-06 22:55:58,725 basehttp 35704 46964 "GET /admin/login/?next=/admin/users/customuser/ HTTP/1.1" 200 3924
+INFO 2025-06-06 22:56:00,626 basehttp 35704 46964 "GET /admin/account/emailaddress/ HTTP/1.1" 302 0
+INFO 2025-06-06 22:56:00,638 basehttp 35704 46964 "GET /admin/login/?next=/admin/account/emailaddress/ HTTP/1.1" 200 3712

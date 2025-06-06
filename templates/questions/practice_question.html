@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "練習題目" %} - {{ question.content|truncatechars:20 }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'questions:subject_list' %}">{% trans "所有科目" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'questions:subject_detail' pk=question.subject.pk %}">{{ question.subject.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% trans "練習題目" %}</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">{% trans "題目：" %} {{ question.content }}</h4>
+            <small class="text-muted">
+                {% trans "題型：" %} {{ question.get_question_type_display }} | 
+                {% trans "難度：" %} {{ question.get_difficulty_display }}
+            </small>
+        </div>
+        <div class="card-body">
+            {% if trial_limit_message %}
+                <div class="alert alert-warning" role="alert">
+                    {{ trial_limit_message }}
+                </div>
+            {% endif %}
+
+            {% if can_practice_question %}
+                {% if question.image %}
+                    <div class="mb-3">
+                        <img src="{{ question.image.url }}" alt="{% trans '題目圖片' %}" class="img-fluid rounded" style="max-height: 300px;">
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                {% trans "請修正以下錯誤：" %}
+                                {{ form.non_field_errors }}
+                                {% for field in form %}
+                                    {% if field.errors %}{{ field.label }}: {{ field.errors|striptags }}{% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% comment %} Render the answer field based on question type {% endcomment %}
+                        <fieldset class="form-group">
+                            <legend class="col-form-label col-sm-2 pt-0">{% trans "您的答案：" %}</legend>
+                            {% if question.question_type == 'single_choice' or question.question_type == 'multiple_choice' %}
+                                {% for value, text in form.answer.field.choices %}
+                                    <div class="form-check">
+                                        {% if question.question_type == 'single_choice' %}
+                                            <input class="form-check-input" type="radio" name="{{ form.answer.name }}" id="id_answer_{{ forloop.counter0 }}" value="{{ value }}" {% if form.answer.value == value %}checked{% endif %} {% if is_answered %}disabled{% endif %}>
+                                        {% elif question.question_type == 'multiple_choice' %}
+                                            <input class="form-check-input" type="checkbox" name="{{ form.answer.name }}" id="id_answer_{{ forloop.counter0 }}" value="{{ value }}" {% if value in form.answer.value %}checked{% endif %} {% if is_answered %}disabled{% endif %}>
+                                        {% endif %}
+                                        <label class="form-check-label" for="id_answer_{{ forloop.counter0 }}">
+                                            {{ text }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            {% elif question.question_type == 'fill_in_blank' %}
+                                {{ form.answer|add_class:"form-control" }}
+                                {% if is_answered %}<script>document.getElementById('{{ form.answer.id_for_label }}').disabled = true;</script>{% endif %}
+                            {% else %}
+                                <p>{% trans "不支援的題目類型作答介面。" %}</p>
+                            {% endif %}
+                        </fieldset>
+                    </div>
+
+                    {% if not is_answered %}
+                        <button type="submit" class="btn btn-primary">{% trans "提交答案" %}</button>
+                    {% endif %}
+                </form>
+
+                {% if is_answered %}
+                    <hr>
+                    <div class="mt-3">
+                        <h4>{% trans "結果：" %}</h4>
+                        {% if is_correct %}
+                            <div class="alert alert-success" role="alert">
+                                <strong>{% trans "正確！" %}</strong>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger" role="alert">
+                                <strong>{% trans "錯誤。" %}</strong>
+                                <p>{% trans "您的答案：" %}
+                                    {% if question.question_type == 'multiple_choice' %}
+                                        {% for ans_val in user_answer %}
+                                            {% for k,v in question.options.items %}{% if k == ans_val %}{{ k }}: {{v}}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}
+                                        {% empty %}
+                                            {% trans "未作答" %}
+                                        {% endfor %}
+                                    {% elif question.question_type == 'fill_in_blank' %}
+                                         {{ user_answer|default:_("未作答") }}
+                                    {% else %}
+                                        {% for k,v in question.options.items %}{% if k == user_answer %}{{ k }}: {{v}}{% endif %}{% endfor %}
+                                        {% if not user_answer %}{% trans "未作答" %}{% endif %}
+                                    {% endif %}
+                                </p>
+                                <p>{% trans "正確答案：" %}
+                                    {% if question.question_type == 'multiple_choice' %}
+                                        {% for opt_text in correct_options_text_list %}
+                                            {{ opt_text }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            {{ correct_answer_display }}
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ correct_answer_display }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% endif %}
+
+                        {% if question.explanation %}
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    {% trans "解析：" %}
+                                </div>
+                                <div class="card-body">
+                                    {{ question.explanation|linebreaksbr }}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'questions:subject_detail' pk=question.subject.pk %}" class="btn btn-secondary">{% trans "返回科目詳情" %}</a>
+                            {% comment %} You might want a "Next Question" button here in a real scenario {% endcomment %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                {# This block is shown if can_practice_question is False #}
+                {# trial_limit_message is already displayed above #}
+                <div class="mt-3">
+                    {# Consider adding a link to purchase/subscribe to the subject if that feature exists #}
+                    {# e.g., <p><a href="{% url 'store:subscribe_subject' pk=question.subject.pk %}" class="btn btn-success">{% trans "订阅科目以解锁题目" %}</a></p> #}
+                    <a href="{% url 'questions:subject_detail' pk=question.subject.pk %}" class="btn btn-secondary">{% trans "返回科目詳情" %}</a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-footer text-muted">
+            {% trans "題目ID：" %} {{ question.pk }}
+        </div>
+    </div>
+</div>
+{% endblock %} 

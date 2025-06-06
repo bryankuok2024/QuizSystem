@@ -4,4 +4,4 @@ from django.utils.translation import gettext_lazy as _
 class QuestionsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'questions'
-    verbose_name = _('题库管理') 
+    verbose_name = _('題庫管理') 

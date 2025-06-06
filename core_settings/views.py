@@ -2,8 +2,7 @@ from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.conf import settings
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.models import User
+from django.contrib.auth import login, authenticate, get_user_model
 from django.utils.crypto import get_random_string
 from django.urls import reverse
 
@@ -110,6 +109,7 @@ def signup_set_password_view(request):
             # Create user
             # Using name as username for simplicity; ensure your User model or logic handles this.
             # You might want to generate a unique username if names can collide.
+            User = get_user_model()
             user = User.objects.create_user(username=name, email=email, password=password)
             user.first_name = name # Or split name into first/last if you have those fields
             # You can save dob if you have a profile model associated with User

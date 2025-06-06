@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+import hashlib
+import json
 
 class Subject(models.Model):
     name = models.CharField(_("科目名稱"), max_length=100, unique=True, db_index=True)
@@ -75,6 +77,23 @@ class Question(models.Model):
 
     def __str__(self):
         return f"{self.subject.name} - {self.content[:50]}..."
+
+    def _generate_hash(self):
+        """基於題目內容和選項生成一個穩定的 SHA-256 哈希值。"""
+        # 將選項字典轉換為一個穩定的、排序過的 JSON 字符串
+        # 確保無論鍵的順序如何，結果都相同
+        options_string = json.dumps(self.options, sort_keys=True) if self.options else ""
+        
+        # 組合內容和選項字符串
+        hash_string = f"{self.content}-{options_string}".encode('utf-8')
+        
+        # 計算 SHA-256 哈希值
+        return hashlib.sha256(hash_string).hexdigest()
+
+    def save(self, *args, **kwargs):
+        """覆寫 save 方法以自動生成哈希值。"""
+        self.question_hash = self._generate_hash()
+        super().save(*args, **kwargs)
 
 # 确保数据库使用 UTF-8
 # Django 的 MySQL 后端默认会尝试使用 utf8mb4字符集。

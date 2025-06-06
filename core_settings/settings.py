@@ -20,6 +20,13 @@ ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STRING.split(',') if hos
 
 # Application definition
 INSTALLED_APPS = [
+    # Local apps first
+    'users.apps.UsersConfig',
+    'questions.apps.QuestionsConfig',
+    'payments.apps.PaymentsConfig',
+    'progress.apps.ProgressConfig',
+
+    # Default Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -27,19 +34,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Required by allauth
-
+    
     # Third-party apps
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google', # Example: Google provider
-
-    # Local apps
-    'users.apps.UsersConfig',
-    'questions.apps.QuestionsConfig',
-    'payments.apps.PaymentsConfig',
-    'progress.apps.ProgressConfig',
+    'widget_tweaks', # Added django-widget-tweaks
 ]
+
+# Set our custom user model
+AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -57,7 +62,7 @@ ROOT_URLCONF = 'core_settings.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -242,6 +247,9 @@ CACHES = {
         'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'}
     }
 }
+
+# Allow social account signup to log the user in immediately
+SOCIALACCOUNT_LOGIN_ON_SIGNUP = True
 
 # Session Settings
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'

@@ -13,11 +13,8 @@ from allauth.socialaccount.providers import registry # 新的导入
 
 # Attempt to import your custom user model. 
 # If you haven't defined one, Django's default User model will be used.
-try:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-except ImportError:
-    from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from .forms import VerifyCodeForm
 
@@ -122,6 +119,6 @@ def verify_signup_code_view(request):
     return render(request, 'account/verify_signup_code.html', {
         'form': form,
         'display_email': display_email
-    })
+    }) 
 
 # The social_test_view function will be removed from here. 

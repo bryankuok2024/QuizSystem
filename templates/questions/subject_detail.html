@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ subject.name }} - {% translate "科目詳情" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ subject.name }}</h1>
+    <p class="lead">{{ subject.description|default_if_none:"" }}</p>
+    <hr>
+    <p>
+        <strong>{% translate "價格" %}:</strong> 
+        {% if subject.price > 0 %}
+            {{ subject.price }}
+        {% else %}
+            {% translate "免費" %}
+        {% endif %}
+    </p>
+    <p><strong>{% translate "試玩題目數" %}:</strong> {{ subject.trial_questions_count }}</p>
+
+    <h3 class="mt-5">{% translate "題目列表" %}</h3>
+    {% if questions_page %}
+        <div class="list-group mb-3">
+            {% for question in questions_page %}
+                <div class="list-group-item list-group-item-action mb-2 flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{% translate "題型" %}: {{ question.get_question_type_display }}</h6>
+                        <small class="text-muted">{% translate "難度" %}: {{ question.get_difficulty_display }}</small>
+                    </div>
+                    <p class="mb-1">{{ question.content|truncatewords:50 }}</p>
+                    <a href="{% url 'questions:practice_question' question_pk=question.pk %}" class="btn btn-sm btn-outline-primary mt-2">{% translate "練習此題" %}</a>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Pagination #}
+        {% if questions_page.has_other_pages %}
+            <nav aria-label="Question navigation">
+                <ul class="pagination justify-content-center">
+                    {% if questions_page.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ questions_page.previous_page_number }}">{% translate "上一頁" %}</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">{% translate "上一頁" %}</span></li>
+                    {% endif %}
+
+                    {% for i in questions_page.paginator.page_range %}
+                        {% if questions_page.number == i %}
+                            <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if questions_page.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ questions_page.next_page_number }}">{% translate "下一頁" %}</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">{% translate "下一頁" %}</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <p>{% translate "此科目下暫無題目。" %}</p>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'questions:subject_list' %}" class="btn btn-secondary">{% translate "返回科目列表" %}</a>
+    </div>
+</div>
+{% endblock %} 

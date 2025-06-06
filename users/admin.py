@@ -1,77 +1,73 @@
 from django.contrib import admin
-from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
-from allauth.socialaccount.admin import SocialAccountAdmin as BaseSocialAccountAdmin
-from allauth.socialaccount.admin import SocialAppAdmin as BaseSocialAppAdmin
-from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin
+from django.contrib.auth.models import Group
 
-# Unregister the original SocialAccountAdmin if it's already registered by allauth
-# This might not be strictly necessary if Django handles re-registration gracefully,
-# but it's safer to be explicit.
-try:
-    admin.site.unregister(SocialAccount)
-except admin.sites.NotRegistered:
+from .models import CustomUser, UserSubjectPurchase, Staff
+
+# Unregister the default Group admin to re-register it under this app.
+if admin.site.is_registered(Group):
+    admin.site.unregister(Group)
+
+@admin.register(CustomUser)
+class CustomUserAdmin(BaseUserAdmin):
+    """Defines the admin interface for NON-STAFF users."""
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'date_joined')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
+    search_fields = ('username', 'first_name', 'last_name', 'email')
+    ordering = ('-date_joined',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(is_staff=False)
+
+    def get_search_results(self, request, queryset, search_term):
+        """
+        Overrides the default search to include all users when accessed from
+        an autocomplete widget, bypassing the is_staff=False filter.
+        """
+        # Use the default search results
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        # If the request is for an autocomplete field, perform a new search
+        # on the unfiltered queryset of the model.
+        if 'autocomplete' in request.path:
+            from django.db.models import Q
+            # Start with a fresh, unfiltered queryset
+            all_users = self.model.objects.all()
+            
+            # Build a search query across all specified search fields
+            search_query = Q()
+            for field in self.search_fields:
+                search_query |= Q(**{f"{field}__icontains": search_term})
+            
+            queryset = all_users.filter(search_query)
+
+        return queryset, use_distinct
+
+@admin.register(Staff)
+class StaffAdmin(BaseUserAdmin):
+    """Defines the admin interface for STAFF users."""
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'date_joined')
+    list_filter = ('is_superuser', 'is_active', 'groups')
+    search_fields = ('username', 'first_name', 'last_name', 'email')
+    ordering = ('-date_joined',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(is_staff=True)
+
+@admin.register(Group)
+class CustomGroupAdmin(GroupAdmin):
+    """Re-registers the Group model under our 'users' app for better organization."""
     pass
 
-@admin.register(SocialAccount)
-class CustomSocialAccountAdmin(BaseSocialAccountAdmin):
-    list_display = ('safe_user_representation', 'provider', 'uid', 'last_login', 'date_joined')
+@admin.register(UserSubjectPurchase)
+class UserSubjectPurchaseAdmin(admin.ModelAdmin):
+    """Admin interface for tracking user's subject purchases."""
+    list_display = ('user', 'subject', 'purchase_date')
+    list_filter = ('purchase_date', 'subject')
+    search_fields = ('user__username', 'user__email', 'subject__name')
+    autocomplete_fields = ('user', 'subject')
 
-    @admin.display(description=_('User (Safe)'), ordering='user__username') # or user__email
-    def safe_user_representation(self, obj):
-        if obj.user:
-            # Attempt to get a string representation, handling potential __proxy__ from user_display
-            try:
-                user_display_str = str(obj.user) # Default user __str__
-                if not user_display_str or user_display_str == 'None': # Fallback if __str__ is not useful
-                    user_display_str = obj.user.email if hasattr(obj.user, 'email') and obj.user.email else str(obj.user.pk)
-                return user_display_str
-            except Exception:
-                return f"User ID: {obj.user.pk}" # Fallback if str(obj.user) fails
-        return _('N/A')
-
-    # You can also override other methods or add more custom displays if needed
-
-# --- Custom SocialApp Admin with descriptions ---
-try:
-    admin.site.unregister(SocialApp)
-except admin.sites.NotRegistered:
-    pass
-
-@admin.register(SocialApp)
-class CustomSocialAppAdmin(BaseSocialAppAdmin):
-    fieldsets = (
-        (None, {
-            'fields': ('provider', 'name', 'client_id', 'secret', 'key')
-        }),
-        (_('Advanced settings'), {
-            'classes': ('collapse',),
-            'fields': ('settings',),
-            'description': _('此處可以為特定提供者配置額外的JSON格式設置。請參考 django-allauth 的文檔以了解特定提供者可用的鍵值。')
-        }),
-        (_('Site assignment'), {
-            'fields': ('sites',),
-            'description': _('選擇此社群應用程式將在哪個(些)網站上啟用。通常，您只需要選擇主要的網站。')
-        }),
-    )
-    # You can also add descriptions directly to fields if not using fieldsets, 
-    # or by overriding the form.
-
-    # Example of how you might add help text to individual fields if you were 
-    # customizing the form (more complex than fieldsets description):
-    # def get_form(self, request, obj=None, **kwargs):
-    #     form = super().get_form(request, obj, **kwargs)
-    #     form.base_fields['client_id'].help_text = _('從社群平台提供者獲取的 Client ID (也可能稱為 App ID 或 Consumer Key)。')
-    #     form.base_fields['secret'].help_text = _('從社群平台提供者獲取的 Secret Key (也可能稱為 App Secret 或 Consumer Secret)。對於 Apple 登入，此欄位可能需要特定的 JWT 或特殊處理，請查閱文件。')
-    #     form.base_fields['key'].help_text = _('某些提供者 (例如 Apple 的 Key ID) 可能需要的額外金鑰或識別碼。')
-    #     form.base_fields['name'].help_text = _('此社群應用程式在後台的描述性名稱，例如 "我的 Google 登入"。')
-    #     form.base_fields['provider'].help_text = _('選擇社群帳號提供者，例如 Google, Apple, Facebook 等。')
-    #     return form
-
-# Ensure SocialToken admin is also registered if you need to manage it, 
-# though it's less common to customize its admin view.
-# from allauth.socialaccount.admin import SocialTokenAdmin
-# admin.site.register(SocialToken, SocialTokenAdmin) # Default admin is usually fine
-
-# If you have SocialApp or SocialToken, you might want to ensure their admins are also behaving.
-# For now, let's focus on SocialAccount. 
+# 註：我們不需要再看到 SocialToken，所以不註冊它。
+# 原檔案中其他的 allauth admin 自訂程式碼現在可以被我們更簡潔的版本取代。 

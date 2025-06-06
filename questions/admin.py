@@ -63,7 +63,7 @@ class QuestionAdmin(admin.ModelAdmin):
         return _("無圖片")
     image_preview.short_description = _('圖片預覽')
 
-    # 如果 Question 模型中的 tags 字段不是通过 db_index=True 直接索引的，
-    # 并且希望在 Admin 中根据它进行有效的过滤或搜索，确保模型层面已经优化。
-    # 对于 ManyToManyField，Django Admin 默认的过滤和搜索是有效的。
-    # `autocomplete_fields` 推荐用于有大量选项的 ForeignKey 或 ManyToManyField，以改善性能。 
+    # 如果 Question 模型中的 tags 欄位不是透過 db_index=True 直接索引的，
+    # 並且希望在 Admin 中根據它进行有效的篩選或搜尋，確保模型層面已經優化。
+    # 對於 ManyToManyField，Django Admin 預設的篩選和搜尋是有效的。
+    # `autocomplete_fields` 推薦用於有大量選項的 ForeignKey 或 ManyToManyField，以改善效能。 

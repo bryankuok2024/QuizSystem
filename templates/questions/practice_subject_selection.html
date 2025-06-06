@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "選擇練習科目" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">{% trans "選擇練習科目" %}</h1>
+    
+    {% if subjects %}
+        <div class="list-group">
+            {% for subject in subjects %}
+                <a href="{% url 'questions:practice_quiz' %}?subject_id={{ subject.id }}" class="list-group-item list-group-item-action">
+                    {{ subject.name }}
+                    {% if subject.description %}
+                        <small class="text-muted d-block">{{ subject.description }}</small>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>{% trans "目前沒有可供練習的科目。" %}</p>
+    {% endif %}
+
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-4">{% trans "返回首頁" %}</a>
+</div>
+{% endblock %} 
