@@ -10,7 +10,7 @@ from django.http import Http404
 from .models import ExamSession
 from questions.models import Subject, Question
 from progress.models import UserProgress
-from questions.utils import decode_hashid, hash_id
+from questions.utils import decode_id, hash_id
 
 # 一次模擬考試抽取的題目數量
 EXAM_QUESTIONS_COUNT = 10
@@ -21,7 +21,7 @@ class StartExamView(LoginRequiredMixin, View):
     """
     def get(self, request, *args, **kwargs):
         hashed_id = self.kwargs.get('hashed_id')
-        subject_id = decode_hashid(hashed_id)
+        subject_id = decode_id(hashed_id)
         if subject_id is None:
             raise Http404("無效的科目ID")
 
@@ -57,7 +57,7 @@ class TakeExamView(LoginRequiredMixin, View):
     
     def get(self, request, *args, **kwargs):
         hashed_id = self.kwargs.get('hashed_id')
-        session_id = decode_hashid(hashed_id)
+        session_id = decode_id(hashed_id)
         if session_id is None:
             raise Http404("無效的考試會話ID")
 
@@ -77,7 +77,7 @@ class TakeExamView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         hashed_id = self.kwargs.get('hashed_id')
-        session_id = decode_hashid(hashed_id)
+        session_id = decode_id(hashed_id)
         if session_id is None:
             raise Http404("無效的考試會話ID")
 
@@ -131,7 +131,7 @@ class ExamResultView(LoginRequiredMixin, DetailView):
 
     def get_object(self, queryset=None):
         hashed_id = self.kwargs.get('hashed_id')
-        session_id = decode_hashid(hashed_id)
+        session_id = decode_id(hashed_id)
         if session_id is None:
             raise Http404("無效的考試會話ID")
         
