@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "我的學習報告" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-chart-line me-2"></i>{% trans "我的學習報告" %}</h1>
+    </div>
+
+    {% if not has_data %}
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">{% trans "尚無學習記錄" %}</h4>
+            <p>{% trans "您還沒有完成任何科目的練習。開始學習以建立您的進度報告！" %}</p>
+            <hr>
+            <a href="{% url 'questions:practice_quiz' %}" class="btn btn-primary">{% trans "開始練習" %}</a>
+        </div>
+    {% else %}
+        <!-- Chart Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-chart-bar me-1"></i>
+                {% trans "各科目練習正確率 (%)" %}
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height:300px">
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Table Section -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-table me-1"></i>
+                {% trans "詳細數據" %}
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{% trans "科目" %}</th>
+                                <th>{% trans "練習正確率" %}</th>
+                                <th>{% trans "總練習題數" %}</th>
+                                <th>{% trans "考試次數" %}</th>
+                                <th>{% trans "考試平均分" %}</th>
+                                <th>{% trans "考試最高分" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in report_data %}
+                            <tr>
+                                <td><strong>{{ record.subject_name }}</strong></td>
+                                <td>{{ record.practice_accuracy }}%</td>
+                                <td>{{ record.total_answered_practice }}</td>
+                                <td>{{ record.num_exams }}</td>
+                                <td>{{ record.avg_exam_score }}</td>
+                                <td>{{ record.highest_exam_score }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="report-data" type="application/json">
+    {{ report_data_json|safe }}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const reportDataElement = document.getElementById('report-data');
+    if (reportDataElement) {
+        const reportData = JSON.parse(reportDataElement.textContent);
+        
+        if (reportData && reportData.length > 0) {
+            const chartLabels = reportData.map(item => item.subject_name);
+            const chartData = reportData.map(item => item.practice_accuracy);
+
+            const ctx = document.getElementById('accuracyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: '{% trans "練習正確率" %}',
+                        data: chartData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load question_tags %}
+
+{% block title %}{% trans "我的收藏" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{% trans "我的收藏" %}</h1>
+
+    {% if page_obj %}
+        <div class="list-group">
+            {% for bookmark in page_obj %}
+                <div class="list-group-item list-group-item-action flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ bookmark.question.content|truncatechars:100 }}</h5>
+                        <div>
+                            <a href="{% url 'questions:practice_question' hashed_id=bookmark.question.pk|hash_id %}" class="btn btn-sm btn-outline-primary me-2">{% trans "練習" %}</a>
+                            <small>{{ bookmark.question.get_difficulty_display }}</small>
+                        </div>
+                    </div>
+                    <p class="mb-1"><small class="text-muted">{{ bookmark.question.subject.name }} - {{ bookmark.question.get_question_type_display }}</small></p>
+                    <small class="text-muted">{% trans "收藏於" %}: {{ bookmark.created_at|date:"Y-m-d H:i" }}</small>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1">{% trans "首頁" %}</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "上一頁" %}</a></li>
+                    {% endif %}
+                    
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ page_obj.number }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "下一頁" %}</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{% trans "末頁" %}</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="alert alert-info">{% trans "您目前沒有收藏任何題目。" %}</div>
+    {% endif %}
+</div>
+{% endblock %} 

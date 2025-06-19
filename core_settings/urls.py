@@ -31,13 +31,18 @@ urlpatterns = [
     # This path for 'users.urls' seems to be duplicated or conflicts with allauth.urls below.
     # It is also present in the commented out 'App URLs' section.
     # Consider if 'accounts/users/' is the correct path or if it should be 'users/'.
-    path('accounts/users/', include('users.urls')),
+    path('accounts/users/', include('users.urls', namespace='users')),
 
     # Django-allauth URLs
     path('accounts/', include('allauth.urls')),
     
+    # Local apps
+    path('', include('pages.urls', namespace='pages')),
+    path('debug/', include('debug_toolbar.urls')),
+    # path('test/', include('core_settings.test_urls')),
+    
     # 主頁
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    # path('', TemplateView.as_view(template_name='home.html'), name='home'),
     
     # 調試和測試頁面
     path('debug/', TemplateView.as_view(template_name='debug.html'), name='debug'),
@@ -46,9 +51,10 @@ urlpatterns = [
     
     # 應用 URLs
     # path('users/', include('users.urls')),
-    path('questions/', include('questions.urls')),
-    # path('payments/', include('payments.urls')),
-    # path('progress/', include('progress.urls')),
+    path('questions/', include('questions.urls', namespace='questions')),
+    path('exams/', include('exams.urls', namespace='exams')),
+    path('payments/', include('payments.urls', namespace='payments')),
+    path('progress/', include('progress.urls', namespace='progress')),
 ]
 
 # The debug prints below might reference 'quizApp/urls.py' in their output, which will be outdated.

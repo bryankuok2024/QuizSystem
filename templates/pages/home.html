@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load question_tags %}
+
+{% block title %}{% trans "首頁" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-custom-primary {
+        background-color: #4A5568;
+        color: white;
+    }
+    .btn-custom-practice {
+        background-color: #4A5568;
+        color: white;
+    }
+    .btn-custom-practice:hover {
+        background-color: #2D3748;
+        color: white;
+    }
+    .btn-custom-exam {
+        background-color: #dc3545;
+        color: #ffc107;
+        font-weight: bold;
+    }
+    .btn-custom-exam:hover {
+        background-color: #c82333;
+        color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if user.is_authenticated %}
+    <div class="row">
+        <!-- Left Main Content Area -->
+        <div class="col-lg-8">
+            <div class="card bg-custom-primary mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">{% trans "歡迎來到題庫系統" %}</h4>
+                    <p class="card-text">
+                        {% blocktrans with user_email=user.email trimmed %}
+                        你好, {{ user_email }} ! 歡迎回來！
+                        {% endblocktrans %}
+                    </p>
+                    <p>{% trans "準備好開始新的學習挑戰了嗎？" %}</p>
+                    <a href="#" class="btn btn-warning fw-bold">{% trans "已購買的題庫" %}</a>
+                </div>
+            </div>
+
+            <!-- Subject Display Area -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="mb-0">{% trans "所有科目" %}</h2>
+                <div class="w-50">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search"></i></span>
+                        <input type="text" id="subjectSearch" class="form-control border-start-0" placeholder="{% trans '搜尋科目...' %}">
+                    </div>
+                </div>
+            </div>
+
+            <div id="majorSubjectsContainer">
+                {% for major_subject in major_subjects %}
+                    {% if major_subject.published_subjects %}
+                    <div class="major-subject-card col-md-12 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapse-{{ major_subject.id }}" role="button" aria-expanded="true" aria-controls="collapse-{{ major_subject.id }}">
+                                <h5 class="mb-0">{{ major_subject.name }}</h5>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="collapse show" id="collapse-{{ major_subject.id }}">
+                                <ul class="list-group list-group-flush subject-list">
+                                    {% for subject in major_subject.published_subjects %}
+                                    <li class="list-group-item" 
+                                        data-subject-id="{{ subject.pk }}"
+                                        data-translation-completed="{% trans '已完成' %}"
+                                        data-translation-repractice="{% trans '再次練習' %}"
+                                        data-translation-continue="{% trans '繼續練習' %}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a href="#" class="subject-toggle text-decoration-none" data-bs-toggle="collapse" data-bs-target="#subject-desc-{{ subject.pk }}">{{ subject.name }}</a>
+                                            <div class="d-flex align-items-center">
+                                                {% if subject.is_purchased %}
+                                                    <span class="text-muted me-2 subject-progress-text">
+                                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        {% trans "載入中..." %}
+                                                    </span>
+                                                    <div class="btn-group subject-action-buttons" role="group" style="display: none;">
+                                                        <a href="{% url 'questions:practice_quiz' %}?subject={{ subject.id|hash_id }}" class="btn btn-primary btn-sm me-2 btn-practice">{% trans "練習" %}</a>
+                                                        <a href="{% url 'exams:start_exam' subject_pk=subject.pk %}" class="btn btn-custom-exam btn-sm">{% trans "模擬考試" %}</a>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted small me-2">{{ subject.question_count }} 題</span>
+                                                    {% if subject.price > 0 %}
+                                                        <span class="text-muted small me-3">${{ subject.price|floatformat:0 }}</span>
+                                                    {% endif %}
+                                                    <a href="{% url 'questions:practice_quiz' %}?subject={{ subject.id|hash_id }}" class="btn btn-sm btn-outline-secondary">{% trans "試玩" %}</a>
+                                                    {% if subject.price > 0 %}<a href="#" class="btn btn-sm btn-warning">{% trans "購買" %}</a>{% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="collapse mt-2" id="subject-desc-{{ subject.pk }}">
+                                            <div class="card card-body bg-light">
+                                                {{ subject.description|default:"此科目沒有提供描述。" }}
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Orphan Subjects -->
+                {% if orphan_subjects %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h4 class="mb-3">{% trans "其他科目" %}</h4>
+                    </div>
+                    {% for subject in orphan_subjects %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ subject.name }}</h5>
+                                <p class="card-text flex-grow-1">{{ subject.description|default:"" }}</p>
+                                <div class="mt-auto">
+                                    <a href="{% url 'questions:practice_quiz' %}?subject={{ subject.pk|hash_id }}" class="btn btn-primary">{% trans "開始練習" %}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">{% trans "學習統計" %}</div>
+                <div class="card-body">
+                    <p>{% trans "總答題數" %}：<span class="badge bg-custom-primary">0</span></p>
+                    <p>{% trans "正確率" %}：<span class="badge bg-custom-primary">0%</span></p>
+                    <p>{% trans "連續學習天數" %}：<span class="badge bg-custom-primary">0</span></p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">{% trans "快速動作" %}</div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'payments:my_purchases' %}" class="btn btn-warning btn-lg">{% trans "已購買的題庫" %}</a>
+                        <a href="{% url 'questions:practice_quiz' %}" class="btn btn-custom-practice btn-lg">{% trans "開始隨機測驗" %}</a>
+                        <hr>
+                        <a href="{% url 'questions:question_search' %}" class="btn btn-outline-secondary">{% trans "題目搜索" %}</a>
+                        <a href="{% url 'questions:bookmark_list' %}" class="btn btn-outline-secondary">{% trans "我的收藏" %}</a>
+                        <a href="{% url 'questions:wrong_questions_practice' %}" class="btn btn-outline-secondary">{% trans "查看錯題本" %}</a>
+                        <a href="{% url 'progress:report' %}" class="btn btn-primary">{% trans "我的學習報告" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- For non-authenticated users -->
+    <div class="row align-items-center py-5">
+        <div class="col-lg-7">
+            <div class="bg-light p-5 rounded-3">
+                <h1 class="display-4 fw-bold">{% trans "精通任何科目，從這裡開始" %}</h1>
+                <p class="lead">{% trans "我們提供最全面的線上題庫系統，幫助您有效學習、精準練習，輕鬆應對各種考試與挑戰。" %}</p>
+                <hr class="my-4">
+                <p>{% trans "立即註冊，體驗個人化的學習路徑、詳細的進度追蹤與智慧錯題分析。" %}</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a class="btn btn-warning btn-lg fw-bold" href="{% url 'account_signup' %}" role="button">{% trans "免費註冊" %}</a>
+                    <a class="btn btn-outline-secondary btn-lg" href="{% url 'account_login' %}" role="button">{% trans "立即登入" %}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">{% trans "所有科目" %}</h4>
+                <div class="w-50">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search"></i></span>
+                        <input type="text" id="subjectSearchGuest" class="form-control border-start-0" placeholder="{% trans '搜尋科目...' %}">
+                    </div>
+                </div>
+            </div>
+
+            <div id="majorSubjectsContainerGuest" style="max-height: 500px; overflow-y: auto; padding-right: 15px;">
+                {% for major_subject in major_subjects %}
+                    {% if major_subject.published_subjects %}
+                    <div class="major-subject-card mb-4">
+                        <div class="card h-100">
+                             <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapse-guest-{{ major_subject.id }}" role="button" aria-expanded="true" aria-controls="collapse-guest-{{ major_subject.id }}">
+                                <h5 class="mb-0">{{ major_subject.name }}</h5>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="collapse show" id="collapse-guest-{{ major_subject.id }}">
+                                <ul class="list-group list-group-flush subject-list">
+                                    {% for subject in major_subject.published_subjects %}
+                                    <li class="list-group-item" 
+                                        data-subject-id="{{ subject.pk }}"
+                                        data-translation-completed="{% trans '已完成' %}"
+                                        data-translation-repractice="{% trans '再次練習' %}"
+                                        data-translation-continue="{% trans '繼續練習' %}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <a href="#" class="subject-toggle text-decoration-none" data-bs-toggle="collapse" data-bs-target="#subject-desc-guest-{{ subject.pk }}">{{ subject.name }}</a>
+                                            <div class="d-flex align-items-center">
+                                                <span class="text-muted small me-2">{{ subject.question_count }} 題</span>
+                                                {% if subject.price > 0 %}
+                                                    <span class="text-muted small me-3">${{ subject.price|floatformat:0 }}</span>
+                                                {% endif %}
+                                                <a href="{% url 'questions:practice_quiz' %}?subject={{ subject.id|hash_id }}" class="btn btn-sm btn-outline-secondary">{% trans "試玩" %}</a>
+                                                {% if subject.price > 0 %}<a href="#" class="btn btn-sm btn-warning">{% trans "購買" %}</a>{% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="collapse mt-2" id="subject-desc-guest-{{ subject.pk }}">
+                                            <div class="card card-body bg-light">
+                                                {{ subject.description|default:"此科目沒有提供描述。" }}
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="card"><div class="card-body text-muted">{% trans '目前沒有可用的科目。' %}</div></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if user.is_authenticated %}
+    const progressLoadErrorText = "{% trans '進度載入失敗' %}";
+
+    // --- AJAX asynchronously loading learning progress ---
+    fetch("{% url 'progress:api_all_subjects_progress' %}")
+        .then(response => response.json())
+        .then(data => {
+            document.querySelectorAll('.list-group-item[data-subject-id]').forEach(item => {
+                const subjectId = item.getAttribute('data-subject-id');
+                const progress = data[subjectId];
+                const progressTextEl = item.querySelector('.subject-progress-text');
+                const actionButtonsEl = item.querySelector('.subject-action-buttons');
+                const practiceBtn = item.querySelector('.btn-practice');
+                
+                if (progress && progressTextEl) {
+                    const answered = progress.answered;
+                    const total = progress.total;
+                    
+                    progressTextEl.innerHTML = `${item.dataset.translationCompleted} ${answered}/${total}`;
+                    
+                    if (practiceBtn) {
+                        if (total > 0 && answered >= total) {
+                            practiceBtn.textContent = item.dataset.translationRepractice;
+                            practiceBtn.classList.remove('btn-primary', 'btn-warning');
+                            practiceBtn.classList.add('btn-success');
+                            // Add reset parameter for re-practice
+                            const url = new URL(practiceBtn.href);
+                            url.searchParams.set('reset', 'true');
+                            practiceBtn.href = url.toString();
+                        } else if (answered > 0) {
+                            practiceBtn.textContent = item.dataset.translationContinue;
+                            practiceBtn.classList.remove('btn-primary');
+                            practiceBtn.classList.add('btn-warning');
+                        } else {
+                            // Default is "開始練習", which is already set
+                        }
+                    }
+                } else if (progressTextEl) {
+                     progressTextEl.textContent = ''; // Or some default text if not purchased
+                }
+
+                if(actionButtonsEl) {
+                    actionButtonsEl.style.display = 'inline-flex';
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching progress:', error);
+            // Handle error, e.g., show a default state
+            document.querySelectorAll('.subject-progress-text').forEach(el => {
+                el.textContent = progressLoadErrorText;
+            });
+        });
+    {% endif %}
+
+    // Logic for search bars
+    const searchInputs = document.querySelectorAll('#subjectSearch, #subjectSearchGuest');
+    const containers = {
+        'subjectSearch': document.getElementById('majorSubjectsContainer'),
+        'subjectSearchGuest': document.getElementById('majorSubjectsContainerGuest')
+    };
+
+    searchInputs.forEach(searchInput => {
+        searchInput.addEventListener('keyup', function() {
+            const filter = searchInput.value.toLowerCase();
+            const container = containers[searchInput.id];
+            if (!container) return;
+            const majorSubjectCards = container.getElementsByClassName('major-subject-card');
+
+            for (let card of majorSubjectCards) {
+                const list = card.querySelector('.subject-list');
+                const items = list.getElementsByTagName('li');
+                let majorSubjectVisible = false;
+
+                for (let item of items) {
+                    const link = item.querySelector('a.subject-toggle');
+                    if (link && link.textContent.toLowerCase().includes(filter)) {
+                        item.style.display = "";
+                        majorSubjectVisible = true;
+                    } else {
+                        item.style.display = "none";
+                    }
+                }
+                
+                if (majorSubjectVisible) {
+                    card.style.display = "";
+                } else {
+                    card.style.display = "none";
+                }
+            }
+        });
+    });
+
+    // Logic to make major subject headers clickable for collapse
+    document.querySelectorAll('.card-header[data-bs-toggle="collapse"]').forEach(header => {
+        header.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            
+            // Toggle icon -
+            // Note: The collapse functionality is handled by Bootstrap's JS, 
+            // we are just managing the icon state based on the 'aria-expanded' attribute.
+            // We can listen for the Bootstrap events to be more robust.
+            setTimeout(() => { // Use timeout to check state after Bootstrap has updated it
+                 const newIsExpanded = this.getAttribute('aria-expanded') === 'true';
+                 if(newIsExpanded){
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-down');
+                 } else {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-right');
+                 }
+            }, 350); // Corresponds to Bootstrap's collapse transition time
+        });
+    });
+});
+</script>
+{% endblock %}

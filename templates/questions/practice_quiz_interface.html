@@ -3,7 +3,11 @@
 {% load static %}
 
 {% block title %}
-    {% blocktrans with subject_name=selected_subject.name %}正在練習科目：{{ subject_name }}{% endblocktrans %}
+    {% if subject_name %}
+        {% blocktrans with subject_name=subject_name %}正在練習：{{ subject_name }}{% endblocktrans %}
+    {% else %}
+        {% blocktrans with subject_name=selected_subject.name %}正在練習科目：{{ subject_name }}{% endblocktrans %}
+    {% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -79,35 +83,37 @@
 
 {% block content %}
 <div class="container mt-4 mb-5">
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>
             {% if results_mode %}
-                {% blocktrans with subject_name=selected_subject.name %}練習結果：{{ subject_name }}{% endblocktrans %}
+                {% if subject_name %}
+                    {% blocktrans with subject_name=subject_name %}練習結果：{{ subject_name }}{% endblocktrans %}
+                {% else %}
+                    {% blocktrans with subject_name=selected_subject.name %}練習結果：{{ subject_name }}{% endblocktrans %}
+                {% endif %}
             {% else %}
-                {% blocktrans with subject_name=selected_subject.name %}練習：{{ subject_name }}{% endblocktrans %}
+                {% if subject_name %}
+                    {% blocktrans with subject_name=subject_name %}練習：{{ subject_name }}{% endblocktrans %}
+                {% else %}
+                    {% blocktrans with subject_name=selected_subject.name %}練習：{{ subject_name }}{% endblocktrans %}
+                {% endif %}
             {% endif %}
         </h1>
         <a href="{% url 'questions:practice_quiz' %}" class="btn btn-outline-secondary">{% trans "選擇其他科目" %}</a>
     </div>
 
-    {% if not is_purchased and subject.price > 0 %}
-        {% if trial_limit_reached %}
-            <div class="alert alert-warning" role="alert">
-                <h4 class="alert-heading">{% trans "試玩額度已用完" %}</h4>
-                <p>{% blocktrans with subject_name=selected_subject.name count=trial_questions_count %}您對科目「{{ subject_name }}」的 {{ count }} 道試玩題目已全部練習完畢。{% endblocktrans %}</p>
-                <hr>
-                <p class="mb-0">{% trans "請購買此科目以解鎖所有題目並繼續練習。" %} <a href="#" class="alert-link">{% trans "前往購買" %}</a></p>
-            </div>
-        {% else %}
+    {% if not results_mode %}
+        {% if not is_purchased and selected_subject.price > 0 %}
             <div class="alert alert-info" role="alert">
-                {% blocktrans with subject_name=selected_subject.name count=trial_questions_count %}您正在試玩付費科目「{{ subject_name }}」。此科目提供 {{ count }} 道試玩題目。{% endblocktrans %}
+                {% blocktrans with subject_name=selected_subject.name %}您正在試玩付費科目「{{ subject_name }}」。{% endblocktrans %}
                 <a href="#" class="alert-link">{% trans "點此購買" %}</a> {% trans "以解鎖所有題目。" %}
             </div>
+        {% elif is_purchased %}
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle"></i> {% trans "您已購買此科目，可存取所有題目。" %}
+            </div>
         {% endif %}
-    {% elif is_purchased %}
-        <div class="alert alert-success" role="alert">
-            <i class="fas fa-check-circle"></i> {% trans "您已購買此科目，可存取所有題目。" %}
-        </div>
     {% endif %}
 
     {% if results_mode %}
@@ -119,18 +125,33 @@
                 您答對了 {{ score }} / {{ total_questions }} 題 ({{ percentage }}%)。
                 {% endblocktrans %}
             </p>
-            <a href="{% url 'questions:practice_quiz' %}?subject_id={{ selected_subject.id }}" class="btn btn-primary">{% trans "再次練習此科目" %}</a>
+            {% if selected_subject %}
+                <a href="{% url 'questions:practice_quiz' %}?subject_id={{ selected_subject.id }}&reset=true" class="btn btn-primary">{% trans "再次練習此科目" %}</a>
+                <a href="{% url 'questions:subject_detail' pk=selected_subject.pk %}" class="btn btn-info ms-2">{% trans "返回科目詳情" %}</a>
+            {% elif practice_mode == 'wrong_questions' %}
+                <a href="{% url 'questions:wrong_questions_practice' %}" class="btn btn-primary">{% trans "再次練習錯題" %}</a>
+            {% endif %}
+             <a href="{% url 'pages:home' %}" class="btn btn-secondary ms-2">{% trans "返回首頁" %}</a>
         </div>
     </div>
     {% endif %}
 
     {% if questions %}
-        <form id="quizForm" method="POST" action="{% url 'questions:practice_quiz' %}?subject_id={{ selected_subject.id }}">
+        <form id="quizForm" method="POST" action="{% url 'questions:practice_quiz_submit' %}">
             {% csrf_token %}
-            <input type="hidden" name="subject_id" value="{{ selected_subject.id }}">
-            <input type="hidden" name="action" value="submit_answers"> {# Indicate form submission #}
+            
+            {# Pass the practice mode to the backend #}
+            {% if practice_mode %}
+            <input type="hidden" name="practice_mode" value="{{ practice_mode }}">
+            {% endif %}
 
-            {% for question_result in questions_with_results|default:questions %} {# Use questions_with_results if in results_mode #}
+            {% if selected_subject %}
+                <input type="hidden" name="subject_id" value="{{ selected_subject.id }}">
+            {% endif %}
+            {# Pass all presented question IDs to the backend for correct result calculation #}
+            <input type="hidden" name="presented_question_ids" value="{{ question_ids_str }}">
+
+            {% for question_result in questions_with_results|default:questions %}
                 {% with question=question_result.question|default:question_result user_answer=question_result.user_answer is_correct=question_result.is_correct correct_answer_display=question_result.correct_answer_display %}
                 <div class="card question-card {% if results_mode %}{% if is_correct %}user-answer-correct{% else %}user-answer-incorrect{% endif %}{% endif %}" id="question-card-{{ question.id }}">
                     <div class="card-body">
@@ -221,18 +242,24 @@
                                 <p>{% trans "未知的題型或此題型不直接提供選項。" %}</p>
                             {% endif %}
                         </div>
-                        
-                        {% if question.explanation %}
-                            <button type="button" class="btn btn-sm btn-outline-info btn-toggle-explanation" data-bs-toggle="collapse" data-bs-target="#explanation-{{ question.id }}" 
-                                    aria-expanded="{% if results_mode %}true{% else %}false{% endif %}" aria-controls="explanation-{{ question.id }}">
-                                {% if results_mode %}{% trans "隱藏解析" %}{% else %}{% trans "查看解析" %}{% endif %}
+
+                        {% if not results_mode %}
+                        <div class="mt-2 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-secondary btn-show-answer"
+                                    data-question-id="{{ question.id }}"
+                                    data-correct-answer="{{ question.correct_answer_json }}">
+                                {% trans "說明/答案" %}
                             </button>
-                            <div class="collapse {% if results_mode %}show{% endif %} explanation mt-2" id="explanation-{{ question.id }}">
-                                <div class="card card-body">
-                                    <h6 class="card-subtitle mb-2 text-muted">{% trans "答案解析" %}</h6>
-                                    {{ question.explanation|linebreaksbr }}
-                                </div>
+                        </div>
+                        {% endif %}
+
+                        {% if question.explanation %}
+                        <div class="explanation-container collapse {% if results_mode %}show{% endif %} mt-2" id="explanation-{{ question.id }}">
+                            <div class="explanation card card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">{% trans "答案解析" %}</h6>
+                                {{ question.explanation|linebreaksbr }}
                             </div>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -244,21 +271,26 @@
             {% endif %}
         </form>
     {% else %}
+        {% if not results_mode %}
         <div class="alert alert-info" role="alert">
-            {% if trial_limit_reached %}
-                 {% blocktrans with subject_name=selected_subject.name %}您已完成所有可用的試玩題目。請購買「{{ subject_name }}」以繼續練習。{% endblocktrans %}
+            {% if selected_subject %}
+                 {% blocktrans with subject_name=selected_subject.name %}此科目「{{ subject_name }}」目前沒有可練習的題目。{% endblocktrans %}
             {% else %}
-                {% trans "此科目下目前沒有題目，或者沒有符合條件的題目。" %}
+                 {% trans "沒有可練習的題目。" %}
             {% endif %}
         </div>
+        {% endif %}
     {% endif %}
 
     <div class="mt-4 text-center">
         {% if results_mode %}
-            <a href="{% url 'questions:practice_quiz' %}?subject_id={{ selected_subject.id }}" class="btn btn-success me-2">{% trans "再試一次" %}</a>
+            {% if selected_subject %}
+            <a href="{% url 'questions:subject_detail' pk=selected_subject.pk %}" class="btn btn-info">{% trans "返回科目詳情" %}</a>
+            {% endif %}
+            <a href="{% url 'pages:home' %}" class="btn btn-secondary ms-2">{% trans "返回首頁" %}</a>
+        {% else %}
+            <a href="{% url 'questions:subject_list' %}" class="btn btn-secondary">{% trans "返回科目列表" %}</a>
         {% endif %}
-        <a href="{% url 'questions:practice_quiz' %}" class="btn btn-secondary me-2">{% trans "返回科目選擇" %}</a>
-        <a href="{% url 'home' %}" class="btn btn-info">{% trans "返回首頁" %}</a>
     </div>
 
 </div>
@@ -267,6 +299,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // --- Logic for explanation toggles ---
     var collapseElements = document.querySelectorAll('.btn-toggle-explanation');
     collapseElements.forEach(function (button) {
         var targetId = button.getAttribute('data-bs-target');
@@ -285,6 +318,65 @@ document.addEventListener('DOMContentLoaded', function () {
                 button.textContent = '{% trans "查看解析" %}';
             });
         }
+    });
+
+    // --- Logic for "Show Answer" buttons ---
+    document.querySelectorAll('.btn-show-answer').forEach(button => {
+        button.addEventListener('click', function() {
+            const questionId = this.dataset.questionId;
+            const correctAnswerData = this.dataset.correctAnswer;
+            const correctAnswer = JSON.parse(correctAnswerData);
+            const questionCard = document.getElementById(`question-card-${questionId}`);
+            
+            if (questionCard) {
+                // For single choice and multiple choice
+                const inputs = questionCard.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+                
+                inputs.forEach(input => {
+                    const label = questionCard.querySelector(`label[for="${input.id}"]`);
+                    if (!label) return;
+
+                    let isCorrect = false;
+                    if (Array.isArray(correctAnswer)) {
+                        isCorrect = correctAnswer.includes(input.value) || correctAnswer.includes(label.textContent.trim());
+                    } else {
+                        isCorrect = (String(correctAnswer) === input.value) || (String(correctAnswer) === label.textContent.trim());
+                    }
+                    
+                    const isUserSelected = input.checked;
+
+                    if (isCorrect) {
+                        label.classList.add('correct-answer-highlight');
+                    } else if (isUserSelected) {
+                        label.classList.add('incorrect-answer-highlight');
+                    }
+                });
+
+                // For fill-in-the-blank
+                const fillInput = questionCard.querySelector('input[type="text"]');
+                if (fillInput) {
+                    // We will not auto-fill the input to allow the user to type it themselves after seeing the explanation.
+                }
+
+                // Show the explanation for this question
+                const explanationContainer = questionCard.querySelector(`#explanation-${questionId}`);
+                if (explanationContainer) {
+                    if (window.bootstrap && bootstrap.Collapse) {
+                        var bsCollapse = new bootstrap.Collapse(explanationContainer, {
+                            toggle: false
+                        });
+                        bsCollapse.show();
+                    } else {
+                        // fallback: 直接展開
+                        explanationContainer.classList.add('show');
+                        console.warn('Bootstrap JS 未正確加載，已直接展開解析區塊。');
+                    }
+                }
+            }
+
+            // Hide the button after its use.
+            this.style.display = 'none';
+        });
     });
 });
 </script>

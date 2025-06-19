@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "考試結果" %} - {{ exam_session.subject.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title mb-0">{% trans "考試結果報告" %}</h2>
+        </div>
+        <div class="card-body">
+            <h4>{{ exam_session.subject.name }}</h4>
+            <p>{% trans "考試時間" %}: {{ exam_session.start_time }}</p>
+            
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">{% trans "您的得分" %}: {{ exam_session.score|floatformat:2 }} / 100</h4>
+            </div>
+
+            <hr>
+
+            <h3 class="mb-3">{% trans "答案詳解" %}</h3>
+            
+            {% for result in results %}
+            <div class="card mb-3 {% if result.is_correct %}border-success{% else %}border-danger{% endif %}">
+                <div class="card-header {% if result.is_correct %}bg-success-light{% else %}bg-danger-light{% endif %}">
+                    <strong>{% trans "第" %}{{ forloop.counter }}{% trans "題" %}:</strong>
+                    {% if result.is_correct %}
+                        <span class="badge bg-success float-end">{% trans "答對" %}</span>
+                    {% else %}
+                        <span class="badge bg-danger float-end">{% trans "答錯" %}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ result.question.content|linebreaksbr }}</p>
+                    {% if result.question.image %}
+                        <img src="{{ result.question.image.url }}" class="img-fluid my-2" alt="{% trans '題目圖片' %}" style="max-width: 300px;">
+                    {% endif %}
+                    <ul class="list-group">
+                        <li class="list-group-item">{% trans "您的答案" %}: <span class="fw-bold">{{ result.user_answer_display }}</span></li>
+                        <li class="list-group-item">{% trans "正確答案" %}: <span class="fw-bold">{{ result.correct_answer_display }}</span></li>
+                    </ul>
+                </div>
+                {% if result.question.explanation %}
+                <div class="card-footer text-muted">
+                    <strong>{% trans "解析" %}:</strong>
+                    <p>{{ result.question.explanation|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="text-center mt-4">
+                <a href="{% url 'questions:subject_detail' exam_session.subject.pk %}" class="btn btn-secondary">{% trans "返回科目" %}</a>
+                <a href="{% url 'exams:start_exam' subject_pk=exam_session.subject.pk %}" class="btn btn-primary">{% trans "再試一次" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-success-light {
+    background-color: #e9f7ef !important;
+}
+.bg-danger-light {
+    background-color: #fdecea !important;
+}
+</style>
+{% endblock %} 

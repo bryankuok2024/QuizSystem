@@ -1,17 +1,12 @@
 from django.apps import AppConfig
-from django.utils.translation import gettext_lazy as _
 # We might need gettext_lazy if we directly deal with __proxy__ type checks, but str() should handle it.
 
 
 class UsersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'users'
-    verbose_name = _('USERS')
 
     def ready(self):
-        # This ready method contains monkey patches to resolve issues with
-        # allauth's display functions returning proxy objects instead of strings.
-        
         # Import here to avoid AppRegistryNotReady errors
         from allauth.account import utils as account_utils
         # from django.conf import settings # Not strictly needed for this patch
@@ -31,6 +26,9 @@ class UsersConfig(AppConfig):
         # Apply the patch globally by replacing the function in the module
         account_utils.user_display = patched_user_display
 
+        # Optional: print a message to confirm the patch is applied during development
+        # print("[UsersConfig] Monkey patched allauth.account.utils.user_display")
+
         # === Monkey patch for allauth.socialaccount.helpers.socialaccount_user_display ===
         from allauth.socialaccount import helpers as socialaccount_helpers
         original_socialaccount_user_display = socialaccount_helpers.socialaccount_user_display
@@ -39,6 +37,7 @@ class UsersConfig(AppConfig):
             # Ensure the final combined string is also explicitly converted
             return str(display_value)
         socialaccount_helpers.socialaccount_user_display = patched_socialaccount_user_display
+        # print("[UsersConfig] Monkey patched allauth.socialaccount.helpers.socialaccount_user_display")
 
         # === Debug: Print registered social providers ===
         from allauth.socialaccount.providers import registry

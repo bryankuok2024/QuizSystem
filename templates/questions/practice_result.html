@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "練習結果" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="card text-center">
+        <div class="card-header">
+            <h2>{% trans "練習結果" %}</h2>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">{% trans "練習總結" %}</h5>
+            <p class="card-text fs-4">
+                {% blocktrans with score=request.session.practice_results.score total=request.session.practice_results.total percentage=request.session.practice_results.percentage %}
+                您答對了 {{ score }} / {{ total }} 題 ({{ percentage }}%)。
+                {% endblocktrans %}
+            </p>
+            <a href="{% url 'pages:home' %}" class="btn btn-primary">{% trans "返回首頁" %}</a>
+            <a href="{% url 'progress:report' %}" class="btn btn-secondary">{% trans "查看我的學習報告" %}</a>
+            {% if request.session.practice_results.subject_id %}
+            <a href="{% url 'questions:practice_quiz' %}?subject_id={{ request.session.practice_results.subject_id }}" class="btn btn-info">{% trans "再次練習此科目" %}</a>
+            {% endif %}
+        </div>
+        <div class="card-footer text-muted">
+            {% trans "繼續努力，不斷進步！" %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

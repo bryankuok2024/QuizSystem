@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ subject.name }} - {% trans "科目詳情" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'questions:subject_list' %}">{% trans "所有科目" %}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ subject.name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="card-body">
+            <h1 class="card-title">{{ subject.name }}</h1>
+            <p class="card-text">{{ subject.description|linebreaksbr }}</p>
+            <hr>
+            <p><strong>{% trans "價格" %}:</strong> {{ subject.price }}</p>
+            {% if subject.price > 0 %}
+            <p><strong>{% trans "試玩題目數量" %}:</strong> {{ subject.trial_questions_count }}</p>
+            {% endif %}
+
+            <!-- 主要練習按鈕 -->
+            <div class="d-grid gap-2 mb-4">
+                <a href="{% url 'questions:practice_quiz' %}?subject_id={{ subject.pk }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play-circle"></i> {% trans "開始練習模式" %}
+                </a>
+            </div>
+
+            {% if is_purchased %}
+                <div class="alert alert-success">{% trans "您已購買此科目。" %}</div>
+            {% elif subject.price > 0 %}
+                <div class="alert alert-info">{% trans "這是付費科目。您可以試做部分題目。" %}</div>
+            {% endif %}
+        </div>
+        <div class="card-footer text-center">
+             <a href="{% url 'exams:start_exam' subject_pk=subject.pk %}" class="btn btn-secondary">
+                <i class="fas fa-tasks"></i> {% trans "開始模擬考試" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4><i class="fas fa-list-ul"></i> {% trans "單獨練習 (逐題)" %}</h4>
+        </div>
+        <div class="list-group list-group-flush">
+            {% for question in questions %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-secondary me-2">{% trans "題型" %}: {{ question.get_question_type_display }}</span>
+                        {{ question.content|truncatechars:80 }}
+                    </div>
+                    <div>
+                        <span class="text-muted small me-3">{% trans "難度" %}: {{ question.get_difficulty_display }}</span>
+                        <a href="{% url 'questions:practice_question' question.pk %}" class="btn btn-sm btn-outline-primary">
+                            {% trans "練習此題" %} <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="list-group-item">{% trans "本科目下暫無題目。" %}</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

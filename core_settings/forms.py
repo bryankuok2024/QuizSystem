@@ -1,6 +1,6 @@
 from django import forms
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User # Added for email/username validation
 import datetime
 
 # Ensure any existing imports and code in forms.py are preserved if the file exists.
@@ -22,14 +22,12 @@ class SignupProfileForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        User = get_user_model()
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("此電子郵件已被註冊。")
         return email
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
-        User = get_user_model()
         if User.objects.filter(username=name).exists(): # Assuming 'name' will be used as username
             raise forms.ValidationError("此姓名已被使用。")
         return name

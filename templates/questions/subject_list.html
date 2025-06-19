@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load question_tags %}
 
 {% block title %}{% translate "科目列表" %}{% endblock %}
 
@@ -10,7 +11,7 @@
     {% if subjects %}
         <div class="list-group">
             {% for subject in subjects %}
-                <a href="{% url 'questions:subject_detail' pk=subject.pk %}" class="list-group-item list-group-item-action flex-column align-items-start mb-2">
+                <a href="{% url 'questions:subject_detail' hashed_id=subject.pk|hash_id %}" class="list-group-item list-group-item-action flex-column align-items-start mb-2">
                     <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1">{{ subject.name }}</h5>
                         {% if subject.price > 0 %}
@@ -20,7 +21,6 @@
                         {% endif %}
                     </div>
                     <p class="mb-1">{{ subject.description|default_if_none:""|truncatewords:30 }}</p>
-                    <small class="text-muted">{% translate "試玩題目數" %}: {{ subject.trial_questions_count }}</small>
                 </a>
             {% endfor %}
         </div>

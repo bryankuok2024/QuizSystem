@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load question_tags %}
+
+{% block title %}{% trans "題目搜索" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bookmark-btn {
+        cursor: pointer;
+        color: #adb5bd; /* Default color for non-bookmarked */
+        transition: color 0.2s;
+    }
+    .bookmark-btn.bookmarked {
+        color: #ffc107; /* Gold color for bookmarked */
+    }
+    .bookmark-btn:hover {
+        color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{% trans "搜索題目" %}</h1>
+
+    <div class="card card-body mb-4">
+        <form method="get">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {{ filter.form.content|as_crispy_field }}
+                </div>
+                <div class="col-md-3">
+                    {{ filter.form.question_type|as_crispy_field }}
+                </div>
+                <div class="col-md-3">
+                    {{ filter.form.difficulty|as_crispy_field }}
+                </div>
+                <div class="col-12">
+                    <label class="form-label d-block">{% trans "標籤" %}</label>
+                    <div>
+                        {% for choice in filter.form.tags %}
+                            <div class="form-check form-check-inline">
+                                {{ choice.tag }}
+                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                    {{ choice.choice_label }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">{% trans "搜索" %}</button>
+                <a href="{% url 'questions:question_search' %}" class="btn btn-secondary">{% trans "清除" %}</a>
+            </div>
+        </form>
+    </div>
+
+    <hr>
+
+    {% if page_obj %}
+        <div class="list-group">
+            {% for question in page_obj %}
+                <div class="list-group-item list-group-item-action flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ question.content|truncatechars:100 }}</h5>
+                        <div>
+                            <a href="{% url 'questions:practice_question' hashed_id=question.pk|hash_id %}" class="btn btn-sm btn-outline-primary me-2">{% trans "練習" %}</a>
+                            <small class="me-3">{{ question.get_difficulty_display }}</small>
+                            <i class="fas fa-bookmark bookmark-btn {% if question.is_bookmarked %}bookmarked{% endif %}" 
+                               data-question-id="{{ question.pk|hash_id }}" 
+                               title="{% if question.is_bookmarked %}{% trans '取消收藏' %}{% else %}{% trans '加入收藏' %}{% endif %}"></i>
+                        </div>
+                    </div>
+                    <p class="mb-1"><small class="text-muted">{{ question.subject.name }} - {{ question.get_question_type_display }}</small></p>
+                    {% if question.tags.all %}
+                        <div>
+                            {% for tag in question.tags.all %}
+                                <span class="badge bg-secondary">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="alert alert-info">{% trans "沒有找到符合條件的題目。" %}</div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page=1">{% trans "首頁" %}</a></li>
+                        <li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">{% trans "上一頁" %}</a></li>
+                    {% endif %}
+                    
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ page_obj.number }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">{% trans "下一頁" %}</a></li>
+                        <li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">{% trans "末頁" %}</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="alert alert-info">{% trans "請使用上面的表單開始搜索。" %}</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    document.querySelectorAll('.bookmark-btn').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default anchor behavior
+            event.stopPropagation(); // Stop event from bubbling up to the parent `<a>`
+
+            const hashedId = this.dataset.questionId;
+            const url = `/questions/bookmark/toggle/${hashedId}/`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                // body: JSON.stringify({}) // No body needed for this toggle action
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    if (data.bookmarked) {
+                        this.classList.add('bookmarked');
+                        this.setAttribute('title', '{% trans "取消收藏" %}');
+                    } else {
+                        this.classList.remove('bookmarked');
+                        this.setAttribute('title', '{% trans "加入收藏" %}');
+                    }
+                } else {
+                    console.error('Bookmark toggle failed:', data.message);
+                    // Optionally, show an error message to the user
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

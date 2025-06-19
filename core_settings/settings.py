@@ -14,19 +14,14 @@ load_dotenv(dotenv_path=dotenv_path, verbose=True, override=True)
 
 # Security Settings
 SECRET_KEY = os.getenv('SECRET_KEY', 'your_default_fallback_secret_key_if_not_set_in_env')
+HASHIDS_SALT = os.getenv('HASHIDS_SALT', 'a_default_salt_but_please_change_it_in_production')
 DEBUG = os.getenv('DEBUG', 'True').lower() != 'false'
 ALLOWED_HOSTS_STRING = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost')
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STRING.split(',') if host.strip()]
 
-# Application definition
-INSTALLED_APPS = [
-    # Local apps first
-    'users.apps.UsersConfig',
-    'questions.apps.QuestionsConfig',
-    'payments.apps.PaymentsConfig',
-    'progress.apps.ProgressConfig',
-
-    # Default Django apps
+# एप्स (Apps)
+# ------------------------------------------------------------------------------
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,27 +29,54 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Required by allauth
-    
-    # Third-party apps
+]
+
+LOCAL_APPS = [
+    'users.apps.UsersConfig',
+    'questions.apps.QuestionsConfig',
+    'progress.apps.ProgressConfig',
+    'exams.apps.ExamsConfig',
+    'pages.apps.PagesConfig',
+]
+
+THIRD_PARTY_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google', # Example: Google provider
-    'widget_tweaks', # Added django-widget-tweaks
+    'allauth.socialaccount.providers.google',
+    'allauth.usersessions',
+    'allauth.mfa',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'django_countries',
+    'debug_toolbar',
+    'import_export',
+    'widget_tweaks',
+    'django_filters',
 ]
+
+# Django的內建應用
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# Crispy Forms Settings
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Set our custom user model
 AUTH_USER_MODEL = 'users.CustomUser'
 
+# 中介軟體 (Middleware)
+# ------------------------------------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'allauth.account.middleware.AccountMiddleware', # Required by allauth
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'core_settings.urls'

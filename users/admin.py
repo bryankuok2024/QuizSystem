@@ -34,7 +34,7 @@ class CustomUserAdmin(BaseUserAdmin):
             from django.db.models import Q
             # Start with a fresh, unfiltered queryset
             all_users = self.model.objects.all()
-            
+
             # Build a search query across all specified search fields
             search_query = Q()
             for field in self.search_fields:
