@@ -10,7 +10,7 @@ from django.http import Http404
 from .models import ExamSession
 from questions.models import Subject, Question
 from progress.models import UserProgress
-from questions.utils import decode_id, hash_id
+from questions.utils import decode_id, encode_id
 
 # 一次模擬考試抽取的題目數量
 EXAM_QUESTIONS_COUNT = 10
@@ -33,7 +33,7 @@ class StartExamView(LoginRequiredMixin, View):
         # 檢查題目數量是否足夠
         if len(question_ids) < EXAM_QUESTIONS_COUNT:
             messages.error(self.request, _("抱歉，該科目的題目數量不足以開始一場模擬考試。"))
-            return redirect('questions:subject_detail', hashed_id=hash_id(subject.id))
+            return redirect('questions:subject_detail', hashed_id=encode_id(subject.id))
 
         # 隨機抽取題目
         random_question_ids = random.sample(question_ids, EXAM_QUESTIONS_COUNT)
@@ -47,7 +47,7 @@ class StartExamView(LoginRequiredMixin, View):
             )
 
         # 重定向到考試頁面
-        return redirect('exams:take_exam', hashed_id=hash_id(exam_session.id))
+        return redirect('exams:take_exam', hashed_id=encode_id(exam_session.id))
 
 class TakeExamView(LoginRequiredMixin, View):
     """
@@ -64,7 +64,7 @@ class TakeExamView(LoginRequiredMixin, View):
         exam_session = get_object_or_404(ExamSession, pk=session_id, user=request.user)
         
         if exam_session.is_completed:
-             return redirect('exams:exam_result', hashed_id=hash_id(exam_session.id))
+             return redirect('exams:exam_result', hashed_id=encode_id(exam_session.id))
 
         # 這裡需要獲取問題列表並傳遞給模板
         questions = Question.objects.filter(id__in=exam_session.questions_list).order_by('?')
@@ -85,7 +85,7 @@ class TakeExamView(LoginRequiredMixin, View):
 
         if exam_session.is_completed:
             messages.warning(request, _("本次考試已提交，請勿重複提交。"))
-            return redirect('exams:exam_result', hashed_id=hash_id(exam_session.id))
+            return redirect('exams:exam_result', hashed_id=encode_id(exam_session.id))
 
         questions = Question.objects.filter(id__in=exam_session.questions_list)
         user_answers = {}
@@ -116,7 +116,7 @@ class TakeExamView(LoginRequiredMixin, View):
             progress.update_score(new_score=score)
 
         messages.success(request, _("考試完成！查看您的成績報告。"))
-        return redirect('exams:exam_result', hashed_id=hash_id(exam_session.id))
+        return redirect('exams:exam_result', hashed_id=encode_id(exam_session.id))
 
 
 class ExamResultView(LoginRequiredMixin, DetailView):
