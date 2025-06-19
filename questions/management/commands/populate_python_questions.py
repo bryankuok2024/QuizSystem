@@ -64,7 +64,6 @@ class Command(BaseCommand):
             {'content': '`map(function, iterable)` 函數的作用是什麼？', 'options': {'A': '將 `function` 應用於 `iterable` 的每個元素，並返回一個迭代器', 'B': '過濾 `iterable` 中不符合 `function` 條件的元素', 'C': '將 `iterable` 轉換為地圖', 'D': '遍歷 `iterable`'}, 'correct_answer': 'A', 'explanation': '`map()` 會對序列的每個項目執行一個函數。', 'difficulty': 'hard', 'question_type': 'single_choice'},
             {'content': '遞歸函數是指什麼？', 'options': {'A': '調用其他模塊的函數', 'B': '在循環中運行的函數', 'C': '可以自己調用自己的函數', 'D': '沒有返回值的函數'}, 'correct_answer': 'C', 'explanation': '遞歸函數是一種在其定義中直接或間接調用自身的函數。', 'difficulty': 'medium', 'question_type': 'single_choice'},
             {'content': '函數的文檔字符串 (docstring) 是什麼？', 'options': {'A': '函數的第一個註釋行', 'B': '函數定義後緊跟的第一個字符串字面量', 'C': '函數的返回類型說明', 'D': '函數的參數列表'}, 'correct_answer': 'B', 'explanation': '文檔字符串是用於解釋函數功能的字符串，可以通過 `help(function)` 或 `function.__doc__` 查看。', 'difficulty': 'medium', 'question_type': 'single_choice'},
-            {'content': '`print()` 是一個 _____ 函數。', 'options': {}, 'correct_answer': '內置', 'explanation': '`print()` 是Python提供的內置函數之一，無需導入即可使用。', 'difficulty': 'easy', 'question_type': 'fill_in_blank'},
             
             # 41-50: Modules, Exceptions & Files
             {'content': '哪個關鍵字用於導入Python模塊？', 'options': {'A': 'include', 'B': 'import', 'C': 'require', 'D': 'use'}, 'correct_answer': 'B', 'explanation': '`import` 語句用於導入其他Python文件或庫。', 'difficulty': 'easy', 'question_type': 'single_choice'},
