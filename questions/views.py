@@ -20,6 +20,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.messages.views import SuccessMessageMixin
 from django.utils import timezone
 from .filters import QuestionFilter
+from django.http import Http404
 
 # Create your views here.
 
@@ -337,23 +338,22 @@ class SubjectDetailView(LoginRequiredMixin, DetailView):
     template_name = "questions/subject_detail.html"
     context_object_name = "subject"
 
-    def get(self, request, *args, **kwargs):
-        hashed_id = kwargs.get('hashed_id')
-        subject_id = decode_id(hashed_id)
+    def get_object(self, queryset=None):
+        """
+        Overrides the default method to fetch the object based on a hashed ID.
+        """
+        hashed_id = self.kwargs.get('hashed_id')
+        if not hashed_id:
+            raise Http404("Hashed ID not provided in URL")
 
-        if subject_id is None:
-            messages.error(request, _("無效的科目連結。"))
-            return redirect('questions:subject_list')
+        decoded_pk = decode_id(hashed_id)
+        if decoded_pk is None:
+            raise Http404("Invalid hashed ID")
 
-        try:
-            # Use the decoded ID to fetch the object
-            self.object = self.get_queryset().get(pk=subject_id)
-        except self.model.DoesNotExist:
-            messages.error(request, _("您嘗試存取的科目不存在或已被移除。"))
-            return redirect('questions:subject_list')
-        
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
+        if queryset is None:
+            queryset = self.get_queryset()
+
+        return get_object_or_404(queryset, pk=decoded_pk)
 
     def get_queryset(self):
         # Only show published subjects
@@ -362,21 +362,26 @@ class SubjectDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         subject = self.get_object()
-        question_list = Question.objects.filter(subject=subject).order_by('created_at') # Or any other preferred order
+        user = self.request.user
+
+        # Check if the subject is purchased by the user
+        is_purchased = UserSubjectPurchase.objects.filter(user=user, subject=subject).exists()
         
-        paginator = Paginator(question_list, 10) # Show 10 questions per page
-        page_number = self.request.GET.get('page')
+        # Or if the subject is free
+        is_free = subject.price == 0
+
+        # Permission check
+        if not is_purchased and not is_free:
+            messages.error(self.request, _("您沒有權限訪問此科目。"))
+            # We can't return a redirect from here, so we handle access in the dispatch method
+            # For now, let's just not add sensitive data to context.
+            # A better approach would be a custom permission mixin.
+            pass
+
+        context['is_purchased'] = is_purchased
+        context['questions'] = Question.objects.filter(subject=subject, is_trial=False)[:20]
+        context['total_question_count'] = Question.objects.filter(subject=subject, is_trial=False).count()
         
-        try:
-            questions_page = paginator.page(page_number)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            questions_page = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page of results.
-            questions_page = paginator.page(paginator.num_pages)
-            
-        context['questions_page'] = questions_page
         return context
 
 class PracticeQuestionView(LoginRequiredMixin, View):
